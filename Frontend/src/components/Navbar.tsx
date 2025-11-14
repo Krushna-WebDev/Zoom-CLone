@@ -1,107 +1,89 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "../../Context/Context";
+import { ModalContext } from "../../Context/ModelContext";
 
-interface UserInterface {
-  email: string;
-  username: string;
+interface modelInterface {
+  loginModel: boolean;
+  setLoginModel: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Navbar = () => {
-  const [user, setUser] = useState<UserInterface | null>();
-  const token = localStorage.getItem("token");
-  const [loading, setLoading] = useState(true);
+  const { user, setUser } = useContext(UserContext)!;
+  const { setLoginModel } = useContext(ModalContext)!;
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await axios.get("http://localhost:5000/user/getuser", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUser(res.data.user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        localStorage.removeItem("token");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [token]);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
+  const logout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/api/v1/auth/logout",
+        {},
+        { withCredentials: true }
+      );
+      setUser(null);
+      localStorage.removeItem("token");
+    } catch (error) {
+      console.log("Error during logout", error);
+    }
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-md border-b border-white/20 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex justify-between items-center">
-        {/* Logo Section */}
-        <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-3 hover:opacity-90 transition-opacity"
+        >
           <img className="w-10 h-10" src="logo.png" alt="Chattique Logo" />
           <h1 className="text-2xl font-poppins font-bold text-gray-800 uppercase">
             Chattique
           </h1>
         </Link>
 
-        <nav className="flex gap-8 font-raleway">
-          <Link 
-            to="/" 
-            className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-          >
-            Home
-          </Link>
-          <Link 
-            to="/about" 
-            className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-          >
-            About
-          </Link>
-          <Link 
-            to="/features" 
-            className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-          >
-            Features
-          </Link>
+        <nav className="flex gap-4 sm:gap-6">
+          {["Home", "About", "Features"].map((page) => (
+            <Link
+              key={page}
+              to={`/${page.toLowerCase()}`}
+              className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
+                         before:absolute before:bottom-0 before:left-0 before:w-0 before:h-0.5 before:bg-orange-500
+                         before:transition-all hover:before:w-full"
+            >
+              {page}
+            </Link>
+          ))}
         </nav>
 
-        {loading ? (
-          <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin" />
-        ) : user ? (
+        {user ? (
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600">
-                  {user.username.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                <img
+                  src={user?.profilePic || "/defaultProfile.jpg"}
+                  alt={`${user?.name || "User"}'s profile`}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="font-raleway font-medium text-gray-700">
-                {user.username}
+                {user.name}
               </span>
             </div>
+
             <button
               onClick={logout}
-              className="bg-red-500 hover:bg-red-600 font-raleway text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium shadow-sm hover:shadow active:scale-95"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-2 px-4 rounded-lg shadow-md text-sm font-medium transition-transform duration-200 active:scale-95"
             >
               Logout
             </button>
           </div>
         ) : (
-          <Link
-            to="/login"
-            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200 hover:border-gray-400"
+          <button
+            onClick={() => setLoginModel(true)}
+            className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-md text-sm font-medium transition-transform duration-200 active:scale-95"
           >
             Login
-          </Link>
+          </button>
         )}
       </div>
     </header>

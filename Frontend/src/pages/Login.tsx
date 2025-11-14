@@ -1,14 +1,15 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import { FaGoogle } from "react-icons/fa";
+import { FaFacebook } from "react-icons/fa";
 interface formdatainterface {
   username: string;
   password: string;
 }
 
 const Login = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formdata, setformdata] = useState<formdatainterface>({
     username: "",
     password: "",
@@ -25,19 +26,32 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5000/user/login",
-        formdata
+        "http://localhost:5000/api/v1/auth/login",
+        formdata,
+        { withCredentials: true }
       );
       alert(res.data.message);
       setformdata({
         username: "",
         password: "",
       });
-      localStorage.setItem("token", res.data.token);
-      navigate("/")
+      localStorage.setItem("token", res.data.accessToken);
+      // navigate("/")
     } catch (error) {
       alert(error);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = "http://localhost:5000/api/v1/auth/google/callback";
+    const scope = "email profile";
+    const responseType = "code";
+
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
+
+    window.location.href = googleAuthUrl;
+    
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -125,16 +139,17 @@ const Login = () => {
               <div className="space-y-3">
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  onClick={handleGoogleLogin}
+                  className="w-full flex items-center font-raleway justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
-                  <img src="/google.svg" alt="Google" className="w-5 h-5" />
+                  <FaGoogle className="w-5 h-5 " />
                   Continue with Google
                 </button>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                  className="w-full flex items-center font-raleway justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                 >
-                  <img src="/facebook.svg" alt="Facebook" className="w-5 h-5" />
+                  <FaFacebook className="w-5 h-5 " />
                   Continue with Facebook
                 </button>
               </div>

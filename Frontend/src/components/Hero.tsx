@@ -1,32 +1,82 @@
 import axios from "axios";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../../Context/Context";
+import { ModalContext } from "../../Context/ModelContext";
 
 const Hero = () => {
-  const [model, setModel] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  // contexts
+  const { user } = useContext(UserContext)!;
+  const { JoinMeetingModal, setJoinMeetingModal } = useContext(ModalContext)!;
+  const { setRequireLoginModal } = useContext(ModalContext)!;
+
+  // states
   const [inputCode, setinputCode] = useState("");
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
+  const token = localStorage.getItem("token");
 
   const getMeetingcode = async () => {
-    const token = localStorage.getItem("token");
-    const res = await axios.get(
-      "http://localhost:5000/api/v1/meeting/create-meeting",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/v1/meeting/create-meeting",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.status === 201) {
+        setMeetingCode(res.data.meetingId);
+        if (meetingcode) {
+          navigate(`/chatarea/${meetingcode}`);
+        }
       }
-    );
-    setMeetingCode(res.data.meetingid);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  return (
+  const joinMeeting = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/meeting/join-meeting",
+        { meetingId: inputCode },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        if (inputCode) {
+          navigate(`/chatarea/${inputCode}`);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return ( 
     <>
-      <div className="bg-green-100/60">
-        <div className="mx-auto max-w-7xl px-4 flex w-full items-center ">
-          <div className="w-full m-5">
+      <div
+        style={{
+          backgroundImage: `url('Gradient landscape design background _ Free Vector.jpg')`, // <-- put your image in /public
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "brightness(0.90)",
+        }}
+        className="pt-20 relative"
+      >
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
+        <div className="relative z-10 mx-auto max-w-7xl px-4 flex w-full  items-center ">
+          <div className="w-full m-1">
             <h1 className="text-6xl font-raleway">
-              <span className="text-gray-400 pr-5">Say Hi!</span>
+              <span className=" pr-5 bg-clip-text text-transparent bg-gradient-to-r from-[#B29FD9] to-[#F97316]">
+                Say Hi!
+              </span>
               To Your Friend & Family
             </h1>
             <p className="font-poppins font-semibold mt-8 mr-30 text-gray-600">
@@ -37,7 +87,9 @@ const Hero = () => {
             </p>
             <div className="flex items-center mt-10 gap-5">
               <button
-                onClick={() => setModel(true)}
+                onClick={() =>
+                  user ? setJoinMeetingModal(true) : setRequireLoginModal(true)
+                }
                 className="bg-orange-500 text-white font-raleway px-3 py-2 rounded"
               >
                 Start Chat
@@ -58,27 +110,23 @@ const Hero = () => {
               className="absolute bottom-0 w-30 right-20 z-10  object-contain"
               alt="overlay"
             />
-            <div className="absolute bottom-45 left-50 z-10 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4">
-              <div>
-                <img
-                  src="pfp2.jpeg"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                  alt="Profile picture"
-                />
-              </div>
+            <div className="absolute bottom-44 left-40 z-30 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4 backdrop-blur-sm">
+              <img
+                src="/pfp2.jpeg"
+                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                alt="Profile"
+              />
               <div className="flex flex-col">
                 <p className="font-semibold text-gray-900">Sara K.</p>
                 <p className="text-gray-600 text-sm">Hello!!</p>
               </div>
             </div>
-            <div className="absolute bottom-20 left-10 z-10 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4">
-              <div>
-                <img
-                  src="pfp1.jpeg"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                  alt="Profile picture"
-                />
-              </div>
+            <div className="absolute bottom-20 left-10 z-30 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4 backdrop-blur-sm">
+              <img
+                src="/pfp1.jpeg"
+                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                alt="Profile"
+              />
               <div className="flex flex-col">
                 <p className="font-semibold text-gray-900">Jasmin P.</p>
                 <p className="text-gray-600 text-sm">Hello !! How are you?</p>
@@ -86,12 +134,12 @@ const Hero = () => {
             </div>
           </div>
         </div>
-        {model && (
-          <div className="bg-black/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-[90%] relative">
+        {JoinMeetingModal && (
+          <div className="bg-black/60  fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white/50 p-8 rounded-xl shadow-lg w-96 max-w-[90%] relative">
               <button
-                onClick={() => setModel(false)}
-                className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setJoinMeetingModal(false)}
+                className="absolute right-4 top-4 text-gray-900 hover:text-gray-800 transition-colors"
               >
                 ✕
               </button>
@@ -124,18 +172,23 @@ const Hero = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span onClick={getMeetingcode}>Generate New Code</span>
+                  <span onClick={getMeetingcode}>Create Code And Join</span>
                 </button>
 
                 {meetingcode && <p className="font-raleway"> {meetingcode}</p>}
               </div>
-
-              <Link
-                to={`/chatarea/${inputCode || meetingcode}`}
-                className="..."
-              >
-                Join Chat Area
-              </Link>
+              <div className="w-full text-center">
+                <span
+                  onClick={joinMeeting}
+                  className="inline-block bg-gradient-to-r from-orange-500 to-orange-600 
+               hover:from-orange-600 hover:to-orange-700 
+               text-white font-raleway font-medium px-4 py-2 
+               rounded-xl shadow-lg transition-all duration-200 
+               transform hover:scale-105 active:scale-95"
+                >
+                  Join Chat Area Via Code
+                </span>
+              </div>
             </div>
           </div>
         )}

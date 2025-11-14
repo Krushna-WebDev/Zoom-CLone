@@ -1,9 +1,10 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 interface formdatainterface {
-  username: string;
+  name: string;
   email: string;
   password: string;
   // confirmPassword: string;
@@ -12,9 +13,9 @@ interface formdatainterface {
 const Signup = () => {
   const navigate = useNavigate();
   const [formdata, setFormdata] = useState<formdatainterface>({
-    username: "",
-    email: "",
-    password: "",
+    name: "", //krushna
+    email: "", // test123@gmail.com
+    password: "", //123
     // confirmPassword: "",
   });
 
@@ -29,19 +30,19 @@ const Signup = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:5000/user/register",
+        "http://localhost:5000/api/v1/auth/register",
         formdata
       );
-      console.log(res.data);
-      alert(res.data.message);
+      toast.success(res.data.message);
       setFormdata({
-        username: "", //krushna123
-        email: "", //krushna123@gmail.com
-        password: "", //123
+        name: "", 
+        email: "", 
+        password: "",
       });
-      navigate("/login");
-    } catch (error) {
-      alert(error);
+      // navigate("/login");
+    } catch (error: any) {
+      const errors = error.response.data.errors;
+      errors.map((e: any) => toast.error(e));
     }
   };
   return (
@@ -59,10 +60,10 @@ const Signup = () => {
               <div>
                 <input
                   type="text"
-                  name="username"
-                  value={formdata.username}
+                  name="name"
+                  value={formdata.name}
                   className="block w-full py-2 px-3 border font-semibold border-gray-400"
-                  placeholder="Username"
+                  placeholder="Name"
                   onChange={handleChange}
                 />
                 <input

@@ -1,28 +1,30 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import ChatArea from "./ChatArea";
+import { ChatNavbar } from "./ChatNavbar";
 
 interface Participant {
   userId: string;
-  username: string;
+  name: string;
 }
 
 const ChatLayout = () => {
   const [participants, setparticipants] = useState<Participant[]>([]);
   return (
-    <div className="min-h-screen flex bg-gray-50 overflow-hidden">
-      <div className="w-70 flex-shrink-0">
-        <Sidebar
-          participants={participants}
-        />
+    <>
+      <ChatNavbar />
+      <div className="flex bg-gray-50 overflow-hidden">
+        <div className="w-70 flex-shrink-0">
+          <Sidebar />
+        </div>
+        <div className="flex-1">
+          <ChatArea
+            participants={participants}
+            setparticipants={setparticipants}
+          />
+        </div>
       </div>
-      <div className="flex-1">
-        <ChatArea
-          participants={participants}
-          setparticipants={setparticipants}
-        />
-      </div>
-    </div>
+    </>
   );
 };
 
