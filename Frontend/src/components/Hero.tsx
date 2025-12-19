@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 
@@ -8,20 +8,20 @@ const Hero = () => {
   const navigate = useNavigate();
 
   // contexts
-  const { user } = useContext(UserContext)!;
-  const { JoinMeetingModal, setJoinMeetingModal } = useContext(ModalContext)!;
-  const { setRequireLoginModal } = useContext(ModalContext)!;
+  const { user, setJoinType, token, setToken } = useContext(UserContext)!;
+  const { JoinMeetingModal, setJoinMeetingModal, setRequireLoginModal } =
+    useContext(ModalContext)!;
 
   // states
   const [inputCode, setinputCode] = useState("");
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
-  const token = localStorage.getItem("token");
 
   const getMeetingcode = async () => {
     try {
       const res = await axios.get(
         "http://localhost:5000/api/v1/meeting/create-meeting",
         {
+          withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -29,37 +29,43 @@ const Hero = () => {
       );
       if (res.status === 201) {
         setMeetingCode(res.data.meetingId);
-        if (meetingcode) {
-          navigate(`/chatarea/${meetingcode}`);
-        }
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 403) {
+        try {
+          const refreshRes = await axios.get(
+            "http://localhost:5000/api/v1/auth/refresh",
+            {
+              withCredentials: true,
+            }
+          );
+          const newToken = refreshRes.data.accessToken;
+          localStorage.setItem("token", newToken);
+          setToken(newToken);
+        } catch (refreshError) {
+          console.error("Refresh failed:", refreshError);
+        }
+      } else {
+        console.error("Error fetching user:", error);
+      }
     }
   };
 
+  const joinAfterCode = () => {
+    if (meetingcode) {
+      setJoinType("admin");
+      navigate(`/chatarea/${meetingcode}`);
+    }
+  };
   const joinMeeting = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/v1/meeting/join-meeting",
-        { meetingId: inputCode },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (res.status === 200) {
-        if (inputCode) {
-          navigate(`/chatarea/${inputCode}`);
-        }
-      }
-    } catch (error) {
-      console.log(error);
+    if (inputCode) {
+      navigate(`/chatarea/${inputCode}`);
+      setJoinType("member");
     }
   };
 
-  return ( 
+  return (
     <>
       <div
         style={{
@@ -135,59 +141,164 @@ const Hero = () => {
           </div>
         </div>
         {JoinMeetingModal && (
-          <div className="bg-black/60  fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-white/50 p-8 rounded-xl shadow-lg w-96 max-w-[90%] relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+            {/* Modal Container */}
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
+              {/* Decorative Top Bar */}
+              <div className="h-2 w-full bg-gradient-to-r from-orange-400 to-orange-600"></div>
+
+              {/* Close Button */}
               <button
                 onClick={() => setJoinMeetingModal(false)}
-                className="absolute right-4 top-4 text-gray-900 hover:text-gray-800 transition-colors"
+                className="absolute right-4 top-5 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200"
+                aria-label="Close modal"
               >
-                ✕
-              </button>
-              <h1 className="text-2xl font-raleway text-center mb-8 text-gray-800">
-                Meeting Code
-              </h1>
-              <div className="space-y-4 mb-8">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    onChange={(e) => setinputCode(e.target.value)}
-                    className="flex-1 border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-200 transition-all"
-                    placeholder="Enter meeting code..."
-                  />
-                  <button className="font-raleway bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg flex items-center gap-2">
-                    <span>Copy</span>
-                  </button>
-                </div>
-                <p className="font-raleway text-center">OR</p>
-                <button className="w-full font-raleway bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition-all duration-300 active:scale-95 shadow-sm hover:shadow flex items-center justify-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm3 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span onClick={getMeetingcode}>Create Code And Join</span>
-                </button>
-
-                {meetingcode && <p className="font-raleway"> {meetingcode}</p>}
-              </div>
-              <div className="w-full text-center">
-                <span
-                  onClick={joinMeeting}
-                  className="inline-block bg-gradient-to-r from-orange-500 to-orange-600 
-               hover:from-orange-600 hover:to-orange-700 
-               text-white font-raleway font-medium px-4 py-2 
-               rounded-xl shadow-lg transition-all duration-200 
-               transform hover:scale-105 active:scale-95"
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Join Chat Area Via Code
-                </span>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              <div className="p-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-bold font-raleway text-gray-900">
+                    Video Meeting
+                  </h1>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Connect with your team instantly
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* --- Section 1: Join with Code --- */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
+                      Have a meeting code?
+                    </label>
+                    <div className="relative flex items-center group">
+                      <div className="absolute left-3 text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        onChange={(e) => setinputCode(e.target.value)}
+                        className="w-full pl-10 pr-24 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                        placeholder="abc-def-ghi"
+                      />
+                      <button
+                        onClick={joinMeeting}
+                        className="absolute right-1.5 top-1.5 bottom-1.5 bg-gray-900 hover:bg-orange-600 text-white px-4 rounded-lg font-medium text-sm transition-colors duration-200"
+                      >
+                        Join
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* --- Separator --- */}
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-wider">
+                      OR
+                    </span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+
+                  {/* --- Section 2: Create Code --- */}
+                  <div>
+                    <button
+                      onClick={getMeetingcode}
+                      className="group w-full flex items-center justify-center gap-3 bg-orange-50 hover:bg-orange-100 border border-orange-100 hover:border-orange-200 text-orange-700 font-semibold px-6 py-4 rounded-xl transition-all duration-200 active:scale-[0.98]"
+                    >
+                      <div className="p-2 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                        <svg
+                          className="w-5 h-5 text-orange-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      Create New Meeting
+                    </button>
+                  </div>
+
+                  {/* --- Section 3: Display Generated Code (Conditional) --- */}
+                  {meetingcode && (
+                    <div className="animate-in slide-in-from-top-4 fade-in duration-300">
+                      <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <p className="text-sm font-medium text-green-800">
+                            Success! Here is your code:
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-green-200 border-dashed">
+                          <span className="flex-1 font-mono text-lg font-bold text-gray-800 tracking-wider text-center">
+                            {meetingcode}
+                          </span>
+
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() =>
+                                navigator.clipboard.writeText(meetingcode)
+                              }
+                              className="p-2 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
+                              title="Copy to clipboard"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={joinAfterCode}
+                              className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+                            >
+                              Enter Room
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

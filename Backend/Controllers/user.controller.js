@@ -57,7 +57,7 @@ export const login = async (req, res) => {
   const accessToken = jwt.sign(
     { id: FoundUser._id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "1m" }
+    { expiresIn: "15m" }
   );
   const refreshToken = jwt.sign(
     { id: FoundUser._id },
@@ -85,7 +85,7 @@ export const refresh = (req, res) => {
     const accessToken = jwt.sign(
       { id: user.id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "5m" }
+      { expiresIn: "15m" }
     );
     res.json({ accessToken });
   });
@@ -165,7 +165,7 @@ export const GoogleLogin = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1m" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(

@@ -36,6 +36,7 @@ const Login = () => {
         password: "",
       });
       localStorage.setItem("token", res.data.accessToken);
+
       // navigate("/")
     } catch (error) {
       alert(error);

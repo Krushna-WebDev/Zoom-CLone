@@ -1,40 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../Context/Context";
-import { useParams } from "react-router-dom";
-import axios from "axios";
 
 interface Participant {
   userId: string;
   name: string;
+  joinType: string;
 }
 
-// interface SidebarProps {
-//   participants: Participant[];
-// }
+interface SidebarProps {
+  participants: Participant[];
+}
 
-const Sidebar = () => {
+const Sidebar = ({ participants }: SidebarProps) => {
   const { user } = useContext(UserContext)!;
-  const token = localStorage.getItem("token");
-
-  const [participants, setparticipants] = useState<Participant[]>([]);
-
-  const { meetingId } = useParams();
-  const fetchParticipants = async () => {
-    console.log("meetingid", meetingId);
-    const res = await axios.get(
-      `http://localhost:5000/api/v1/meeting/fetch-participants/${meetingId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    setparticipants(res.data);
-    console.log(res.data);
-  };
-  useEffect(() => {
-    fetchParticipants();
-  }, []);
   return (
     <div className="h-screen bg-white border-r">
       <div className="p-4 border-b">
@@ -51,16 +29,25 @@ const Sidebar = () => {
       </div>
       <div className="p-4">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Participants ({participants.length})
+          Participants ({participants?.length})
         </h3>
         <div className="space-y-3">
-          {participants.map((user) => (
-            <div className="flex items-center gap-3">
+          {participants?.map((user) => (
+            <div key={user.userId} className="flex items-center gap-3">
               <div className="relative">
                 <div className="py-5 px-5 rounded-full bg-gray-700 "></div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>
               </div>
-              <p className="text-sm font-medium text-gray-700">{user.name}</p>
+
+              <p className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <span>{user.name}</span>
+
+                {user.joinType === "admin" && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-bold uppercase px-2.5 py-0.5 rounded-full">
+                    Admin
+                  </span>
+                )}
+              </p>
             </div>
           ))}
         </div>

@@ -1,10 +1,8 @@
 import axios from "axios";
-import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { io } from "socket.io-client";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { useFetcher, useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../../Context/Context";
-const socket = io("http://localhost:5000");
-
+import { SocketContext } from "../../../Context/SocketContext";
 
 interface Participants {
   userId: string;
@@ -16,46 +14,203 @@ interface ChatAreaProps {
   setparticipants: React.Dispatch<React.SetStateAction<Participants[]>>;
 }
 
-const ChatArea = ({ setparticipants }: ChatAreaProps) => {
-  const { meetingId } = useParams();
-  const [messages, setMessages] = useState<string[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+interface joinMsg {
+  type: "join";
+  user: string;
+}
 
-  const { user  } = useContext(UserContext)!;
+interface leaveMsg {
+  type: "leave";
+  user: string;
+}
+interface ChatMsg {
+  type: "Msg";
+  user: string;
+  text: string;
+  userId: string;
+}
+
+type Message = joinMsg | leaveMsg | ChatMsg;
+const ChatArea = ({ setparticipants }: ChatAreaProps) => {
+  const navigate = useNavigate();
+  const { meetingId } = useParams();
+  const { joinType } = useContext(UserContext)!;
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const inputref = useRef<HTMLInputElement | null>(null);
+
+  const { user } = useContext(UserContext)!;
+  const socket = useContext(SocketContext)!;
 
   useEffect(() => {
-    if (!user) return;
-    const userId = user._id;
-   
-    const name = user.name;
-    socket.emit("join-room", { meetingId, userId, name });
+    inputref.current?.focus();
+  }, []);
 
-    socket.on("receive-message", (msg) => {
+  // Join room + listeners
+  useEffect(() => {
+    if (!user) return;
+
+    socket.emit("join-room", {
+      meetingId,
+      userId: user._id,
+      name: user.name,
+      joinType,
+    });
+
+    socket.on("userJoined", (msg: joinMsg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    socket.on("receive-message", (msg: ChatMsg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+    socket.on("userLeft", (msg: leaveMsg) => {
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("Connected-Users", (data) => {
       setparticipants(data);
     });
+
     return () => {
+      socket.off("userJoined");
       socket.off("receive-message");
+      socket.off("userLeft");
+      socket.off("Connected-Users");
     };
   }, [meetingId, user]);
 
+  // Leave confirmation → redirect
+  useEffect(() => {
+    socket.on("left-room-success", () => {
+      navigate("/");
+    });
+    return () => {
+      socket.off("left-room-success");
+    };
+  }, []);
+
   const sendMessage = () => {
-    socket.emit("send-message", { meetingId, message: newMessage });
+    const text = newMessage.trim();
+    if (!text) return;
+    socket.emit("send-message", {
+      meetingId,
+      message: newMessage,
+      userId: user?._id,
+    });
     setNewMessage("");
+    inputref.current?.focus();
   };
+
+  const LeaveRoom = () => {
+    socket.emit("leave-room", meetingId);
+  };
+
+  console.log("messages", messages);
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
-          <p key={idx}>{msg}</p>
-        ))}
+        {messages.map((msg, idx) => {
+          if (msg.type === "join") {
+            const m = msg as joinMsg;
+            return (
+              <div
+                key={`join-${idx}`}
+                className="flex justify-center w-full my-3"
+              >
+                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-3 h-3 text-emerald-600"
+                  >
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
+
+                  <span className="text-xs text-emerald-800">
+                    <span className="font-bold mr-1">{m.user}</span>
+                    joined the room
+                  </span>
+                </div>
+              </div>
+            );
+          } else if (msg.type === "leave") {
+            const m = msg as leaveMsg;
+            return (
+              <div
+                key={`leave-${idx}`}
+                className="flex justify-center w-full my-3 opacity-80"
+              >
+                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-200 rounded-full">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-3 h-3 text-rose-500"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+
+                  <span className="text-xs text-rose-800">
+                    <span className="font-bold mr-1">{m.user}</span>
+                    left the room
+                  </span>
+                </div>
+              </div>
+            );
+          } else if (msg.type === "Msg") {
+            //  (ME)
+            if (msg.userId === user?._id) {
+              return (
+                <div key={`msg-${idx}`} className="flex justify-end mb-4">
+                  <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tr-sm bg-blue-600 text-white shadow-md">
+                    <p className="text-sm leading-relaxed break-words">
+                      {msg.text}
+                    </p>
+
+                    {/* Optional: Agar msg object me time hai to uncomment karein */}
+                    {/* <div className="text-[10px] text-blue-100 opacity-70 text-right mt-1">
+            10:30 AM
+          </div> 
+          */}
+                  </div>
+                </div>
+              );
+            }
+            // others
+            else {
+              return (
+                <div key={`msg-${idx}`} className="flex justify-start mb-4">
+                  <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800 shadow-sm">
+                    <p className="text-sm leading-relaxed break-words">
+                      {msg.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+          }
+          return null;
+        })}
       </div>
-      <div className="flex-shrink-0 border-t bg-white p-4">
-        <div className="flex gap-2 items-center max-w-7xl mx-auto">
+      <div className="flex-shrink-0 border-t bg-white p-4 bottom-0">
+        <div className="flex gap-2 items-center">
           <input
             type="text"
+            ref={inputref}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
@@ -63,9 +218,18 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           />
           <button
             onClick={sendMessage}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 active:scale-95 flex items-center gap-2"
+            type="button"
+            disabled={!newMessage.trim()}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 active:scale-95 flex items-center gap-2
+             ${
+               newMessage.trim()
+                 ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                 : "bg-blue-200 text-white/60 cursor-not-allowed"
+             }`}
           >
-            <span>Send</span>
+            <span className={`${newMessage.trim() ? "" : "opacity-70"}`}>
+              Send
+            </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -75,6 +239,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
             </svg>
           </button>
+          <button onClick={LeaveRoom}>leave</button>
         </div>
       </div>
     </div>

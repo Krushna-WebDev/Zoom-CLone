@@ -29,28 +29,111 @@ const io = new Server(server, {
 });
 
 const roomUser = {};
+const deleteRoom = {
+  // "roomnumber1":function of deletetion
+  // "roomnumber2":function of deletetion
+};
 
 io.on("connection", (socket) => {
-  socket.on("join-room", ({ meetingId, userId, name }) => {
+  socket.on("join-room", ({ meetingId, userId, name, joinType }) => {
     socket.join(meetingId);
+    socket.meetingId = meetingId;
+    socket.name = name;
+
+    socket.to(meetingId).emit("userJoined", {
+      type: "join",
+      user: name,
+    });
+
+    socket.on("offer", ({ offer, meetingId }) => {
+      console.log("offer backend me aaya ", offer);
+      socket.to(meetingId).emit("offer", offer);
+    });
+    socket.on("answer", ({ answer, meetingId }) => {
+      socket.to(meetingId).emit("answer", answer);
+    });
+
+    socket.on("ice-candidate", ({ candidate, meetingId }) => {
+      socket.to(meetingId).emit("ice-candidate",{candidate})
+
+    });
+    if (deleteRoom[meetingId]) {
+      clearTimeout(deleteRoom[meetingId]);
+      delete deleteRoom[meetingId];
+    }
 
     if (!roomUser[meetingId]) {
       roomUser[meetingId] = [];
     }
-    const exists = roomUser[meetingId].some((user) => user.userId === userId);
+
+    const exists = roomUser[meetingId].some((u) => u.userId === userId);
     if (!exists) {
-      roomUser[meetingId].push({ userId, name });
+      roomUser[meetingId].push({
+        userId,
+        name,
+        socketId: socket.id,
+        joinType,
+      });
     }
-   
+
     io.to(meetingId).emit("Connected-Users", roomUser[meetingId]);
   });
 
-  socket.on("send-message", ({ meetingId, message }) => {
-    io.to(meetingId).emit("receive-message", message);
+  socket.on("send-message", ({ meetingId, message, userId }) => {
+    const name = socket.name;
+    io.to(meetingId).emit("receive-message", {
+      type: "Msg",
+      user: name,
+      text: message,
+      userId,
+    });
+  });
+
+  socket.on("leave-room", (meetingId) => {
+    socket.leave(meetingId);
+    const name = socket.name;
+    // io.to(meetingId).emit("userLeft" , )
+    socket.to(meetingId).emit("userLeft", {
+      type: "leave",
+      user: name,
+    });
+
+    if (roomUser[meetingId]) {
+      roomUser[meetingId] = roomUser[meetingId].filter(
+        (u) => u.socketId !== socket.id
+      );
+    }
+
+    if (roomUser[meetingId]?.length === 0) {
+      deleteRoom[meetingId] = setTimeout(() => {
+        delete roomUser[meetingId];
+        delete deleteRoom[meetingId];
+      }, 60000);
+    }
+
+    io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
+
+    socket.emit("left-room-success");
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    const meetingId = socket.meetingId;
+    if (!meetingId) return;
+
+    if (roomUser[meetingId]) {
+      roomUser[meetingId] = roomUser[meetingId].filter(
+        (u) => u.socketId !== socket.id
+      );
+    }
+
+    if (roomUser[meetingId]?.length === 0) {
+      deleteRoom[meetingId] = setTimeout(() => {
+        delete roomUser[meetingId];
+        delete deleteRoom[meetingId];
+      }, 60000);
+    }
+
+    io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
   });
 });
 

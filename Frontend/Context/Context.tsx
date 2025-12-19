@@ -12,12 +12,15 @@ interface UserContextInterface {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   token: string;
   setToken: React.Dispatch<React.SetStateAction<string>>;
+  joinType: string;
+  setJoinType: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const UserContext = createContext<UserContextInterface | null>(null);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [joinType, setJoinType] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -55,7 +58,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   }, [token]);
   return (
-    <UserContext.Provider value={{ user, setUser, token, setToken }}>
+    <UserContext.Provider
+      value={{ user, setUser, token, setToken, joinType, setJoinType }}
+    >
       {children}
     </UserContext.Provider>
   );
