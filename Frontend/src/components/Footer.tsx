@@ -1,3 +1,4 @@
+import { Github, Linkedin, Twitter } from "lucide-react";
 const Footer = () => {
   return (
     <footer className="py-16 border-t border-border">
@@ -24,19 +25,19 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
               >
-                {/* <Twitter className="w-5 h-5" /> */}
+                <Twitter className="w-5 h-5" />
               </a>
               <a
                 href="#"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
               >
-                {/* <Github className="w-5 h-5" /> */}
+                <Github className="w-5 h-5" />
               </a>
               <a
                 href="#"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
               >
-                {/* <Linkedin className="w-5 h-5" /> */}
+                <Linkedin className="w-5 h-5" />
               </a>
             </div>
           </div>

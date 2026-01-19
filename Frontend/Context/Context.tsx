@@ -10,8 +10,8 @@ interface User {
 interface UserContextInterface {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  token: string;
-  setToken: React.Dispatch<React.SetStateAction<string>>;
+  token: string | null;
+  setToken: React.Dispatch<React.SetStateAction<string | null>>;
   joinType: string;
   setJoinType: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -19,7 +19,7 @@ interface UserContextInterface {
 export const UserContext = createContext<UserContextInterface | null>(null);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState<string | null>(null);
   const [joinType, setJoinType] = useState("");
 
   useEffect(() => {
@@ -43,9 +43,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
                 withCredentials: true,
               }
             );
-            const newToken = refreshRes.data.accessToken;
-            localStorage.setItem("token", newToken);
-            setToken(newToken);
+            setToken(refreshRes.data.accessToken);
           } catch (refreshError) {
             console.error("Refresh failed:", refreshError);
           }

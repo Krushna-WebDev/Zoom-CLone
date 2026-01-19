@@ -12,8 +12,10 @@ import { ModalContext } from "../../Context/ModelContext";
 import { toast } from "react-toastify";
 import { UserContext } from "../../Context/Context";
 import Features from "../components/Features";
+import HowItWorks from "../components/HowItWorks";
 
 interface formdatainterface {
+  username: string;
   email: string;
   password: string;
 }
@@ -22,10 +24,12 @@ const Home = () => {
   //context
   const { loginModel, setLoginModel } = useContext(ModalContext)!;
   const { RequireLoginModal, setRequireLoginModal } = useContext(ModalContext)!;
-  const { setToken } = useContext(UserContext)!;
+  const { token,setToken } = useContext(UserContext)!;
 
+  console.log("token from context", token)
   //states
   const [formdata, setformdata] = useState<formdatainterface>({
+    username: "",
     email: "",
     password: "",
   });
@@ -35,30 +39,44 @@ const Home = () => {
     setformdata({
       ...formdata,
       [e.target.name]: e.target.value,
-    });
+    } as any);
   };
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/v1/auth/login",
-        formdata,
-        { withCredentials: true }
-      );
-      toast.success(res.data.message);
-      setformdata({
-        email: "",
-        password: "",
-      });
+      if (modelStatus === 1) {
+        // Login
+        const res = await axios.post(
+          "http://localhost:5000/api/v1/auth/login",
+          { email: formdata.email, password: formdata.password },
+          { withCredentials: true } 
+        );
+        toast.success(res.data.message);
+        setformdata({ username: "", email: "", password: "" });
 
-      if (res.status === 200) {
-        localStorage.setItem("token", res.data.accessToken);
-        const newToken = localStorage.getItem("token")!;
-        setToken(newToken);
-        setLoginModel(false);
+        if (res.status === 200) {
+          setToken(res.data.accessToken);
+          setLoginModel(false);
+        }
+      } else {
+        // Signup
+        const res = await axios.post(
+          "http://localhost:5000/api/v1/auth/register",
+          { name: formdata.username, email: formdata.email, password: formdata.password }
+        );
+        toast.success(res.data.message);
+        setformdata({ username: "", email: "", password: "" });
+        SetModelStatus(1); // switch to login after successful signup
       }
-    } catch (error) {
-      alert(error);
+    } catch (error: any) {
+      const err = error?.response?.data;
+      if (err?.errors && Array.isArray(err.errors)) {
+        err.errors.forEach((e: any) => toast.error(e));
+      } else if (err?.message) {
+        toast.error(err.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
   const handleGoogleLogin = () => {
@@ -71,11 +89,11 @@ const Home = () => {
 
     window.location.href = googleAuthUrl;
   };
-
   return (
     <>
       <Hero />
       <Features />
+      <HowItWorks/>
       {loginModel && (
         <div className="flex justify-center items-center fixed z-50 bg-gray-900/50 inset-0 backdrop-blur-sm p-4">
           {/* Dynamic container based on modelStatus: flex-row-reverse swaps form and image position */}

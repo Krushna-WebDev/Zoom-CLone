@@ -1,9 +1,9 @@
 import axios from "axios";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useFetcher, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../../Context/Context";
 import { SocketContext } from "../../../Context/SocketContext";
-
+// TODO :- load previous 15 msg in chat
 interface Participants {
   userId: string;
   name: string;
@@ -219,7 +219,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           <button
             onClick={sendMessage}
             type="button"
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim()} 
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 active:scale-95 flex items-center gap-2
              ${
                newMessage.trim()

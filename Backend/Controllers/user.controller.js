@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import User from "../Model/userModel.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -39,18 +38,17 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ message: "all field required" });
 
-  const FoundUser = await User.findOne({ email:email });
+  const FoundUser = await User.findOne({ email: email });
   if (!FoundUser) {
     return res.json({ message: "Provide Valid Email" });
   }
 
   const Match = await bcrypt.compare(password, FoundUser.password);
-  console.log(Match)
+  console.log(Match);
   if (!Match) {
     return res.status(401).json({ message: "enter correct password" });
   }
@@ -138,7 +136,6 @@ export const GoogleLogin = async (req, res) => {
     );
 
     const gUser = userInfoRes.data;
-    console.log(gUser);
     // 3) Find or create user in DB
     let user = await User.findOne({ googleId: gUser.sub });
 
@@ -179,6 +176,7 @@ export const GoogleLogin = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     // 6) Send accessToken + user info to frontend

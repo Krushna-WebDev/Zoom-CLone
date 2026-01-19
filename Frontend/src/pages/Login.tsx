@@ -9,7 +9,6 @@ interface formdatainterface {
 }
 
 const Login = () => {
-  const navigate = useNavigate();
   const [formdata, setformdata] = useState<formdatainterface>({
     username: "",
     password: "",

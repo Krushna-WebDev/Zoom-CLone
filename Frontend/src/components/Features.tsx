@@ -1,7 +1,4 @@
 import React from "react";
-import { IoIosVideocam } from "react-icons/io";
-import { MdScreenShare } from "react-icons/md";
-import { BsChatSquareTextFill } from "react-icons/bs";
 import { Camera, MessageSquare, Monitor } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -40,9 +37,10 @@ const featureData: FeatureInterface[] = [
 const Features = () => {
   return (
     <>
-      <div className="mx-auto max-w-7xl min-h-screen">
-        <h1 className="text-center font-raleway text-2xl mt-20">
-          Feature Of Our Chattique
+      <div className="mx-auto max-w-7xl mt-25 ">
+        <h1 className="uppercase text-cyan-600 tracking-wider font-semibold text-center">Features</h1>
+        <h1 className="text-center font-raleway text-5xl my-5">
+         Everything You Need to <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Connect</span> 
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-10 justify-items-center">
           {featureData.map((feature) => (

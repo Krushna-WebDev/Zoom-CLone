@@ -4,9 +4,8 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 
-
 const Navbar = () => {
-  const { user, setUser } = useContext(UserContext)!;
+  const { user, setUser,token,setToken } = useContext(UserContext)!;
   const { setLoginModel } = useContext(ModalContext)!;
 
   const logout = async () => {
@@ -17,7 +16,7 @@ const Navbar = () => {
         { withCredentials: true }
       );
       setUser(null);
-      localStorage.removeItem("token");
+      setToken(null)
     } catch (error) {
       console.log("Error during logout", error);
     }

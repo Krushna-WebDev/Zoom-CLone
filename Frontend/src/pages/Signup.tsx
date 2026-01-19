@@ -11,12 +11,10 @@ interface formdatainterface {
 }
 
 const Signup = () => {
-  const navigate = useNavigate();
   const [formdata, setFormdata] = useState<formdatainterface>({
-    name: "", //krushna
-    email: "", // test123@gmail.com
-    password: "", //123
-    // confirmPassword: "",
+    name: "", 
+    email: "", 
+    password: "", 
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,13 +80,6 @@ const Signup = () => {
                   placeholder="Password"
                   onChange={handleChange}
                 />
-                {/* <input
-                  type="text"
-                  value={formdata.confirmPassword}
-                  className="block w-full py-2 px-3 border font-semibold border-gray-400"
-                  placeholder="Confirm Password"
-                  onChange={handleChange}
-                /> */}
               </div>
               <button
                 type="submit"
