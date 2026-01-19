@@ -4,10 +4,6 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 
-interface modelInterface {
-  loginModel: boolean;
-  setLoginModel: React.Dispatch<React.SetStateAction<boolean>>;
-}
 
 const Navbar = () => {
   const { user, setUser } = useContext(UserContext)!;

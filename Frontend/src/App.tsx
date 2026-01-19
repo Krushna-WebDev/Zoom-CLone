@@ -4,15 +4,15 @@ import Login from "./pages/Login";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import Footer from "./components/Footer";
 import ChatLayout from "./pages/Chat/ChatLayout";
 
 const App = () => {
   return (
     <>
-      
-        <BrowserRouter>
-          <Layout />
-        </BrowserRouter>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
     </>
   );
 };
@@ -37,6 +37,7 @@ function Layout() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/chatarea/:meetingId" element={<ChatLayout />} />
       </Routes>
+      {showNavbar && <Footer />}
     </div>
   );
 }

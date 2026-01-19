@@ -37,6 +37,7 @@ const VideoCall = () => {
       });
 
       stream.getTracks().forEach((track) => {
+        console.log("added track",track)
         pcRef.current?.addTrack(track, stream);
       });
 
@@ -75,6 +76,16 @@ const VideoCall = () => {
     console.log("offer created", offer);
     await pcRef.current?.setLocalDescription(offer);
     socket.emit("offer", { offer, meetingId });
+  };
+  const getCameraVideoTrack = () => {
+    return streamRef.current?.getVideoTracks()[0];
+  };
+  const toggleVideo = () => {
+    const videoTrack = getCameraVideoTrack();
+    console.log("video track",videoTrack)
+    if (!videoTrack) return;
+
+    videoTrack.enabled = !videoTrack.enabled;
   };
 
   const screenshare = async () => {
@@ -147,40 +158,52 @@ const VideoCall = () => {
       socket.off("answer");
     };
   }, [socket]);
-
-  console.log("pc", pcRef.current);
   return (
     <>
-      <h2>Local Preview</h2>
-      <video
-        ref={localVideoRef}
-        autoPlay
-        muted
-        playsInline
-        style={{ width: "300px", background: "#000" }}
-      />
-      <h2>remote video</h2>
-      <video
-        ref={remoteVideoRef}
-        autoPlay
-        muted
-        playsInline
-        style={{ width: "300px", background: "#000" }}
-      />
-      <button
-        onClick={sendOffer}
-        className="bg-blue-600 shadow-md rounded py-2 px-2 text-white font-semibold font-rail
-      "
-      >
-        Start Call
-      </button>
-      <button
-        onClick={screenshare}
-        className="bg-blue-600 shadow-md rounded py-2 px-2 text-white font-semibold font-rail
-      "
-      >
-        share Screen
-      </button>
+      <div className=" flex flex-col bg-black">
+        <div className="flex-1 relative bg-black">
+          <video
+            ref={remoteVideoRef}
+            className="object-cover"
+            autoPlay
+            playsInline
+          />
+
+          {/* Local video - floating corner */}
+          <div className="absolute bottom-4 right-4 w-48 h-40 bg-black rounded-lg overflow-hidden border-2 border-gray-600">
+            <h1 className="text-white p-1">You</h1>
+            <video
+              ref={localVideoRef}
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+
+        {/* Controls - bottom bar */}
+        <div className="bg-gray-900 border-t border-gray-700 p-4 flex items-center justify-center gap-4">
+          <button
+            onClick={sendOffer}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+          >
+            Start Call
+          </button>
+          <button
+            onClick={screenshare}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+          >
+            Share Screen
+          </button>
+          <button
+            onClick={toggleVideo}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+          >
+            Cut Video
+          </button>
+        </div>
+      </div>
     </>
   );
 };

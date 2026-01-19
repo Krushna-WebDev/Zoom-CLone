@@ -78,13 +78,14 @@ const Hero = () => {
       >
         <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
         <div className="relative z-10 mx-auto max-w-7xl px-4 flex w-full  items-center ">
+           {/* left side text */}
           <div className="w-full m-1">
             <h1 className="text-6xl font-raleway">
               <span className=" pr-5 bg-clip-text text-transparent bg-gradient-to-r from-[#B29FD9] to-[#F97316]">
                 Say Hi!
               </span>
               To Your Friend & Family
-            </h1>
+            </h1> 
             <p className="font-poppins font-semibold mt-8 mr-30 text-gray-600">
               Talk. Share. Hang Out. Stay connected with friends, family, or
               your team anytime, anywhere. Our platform makes video calls
@@ -105,7 +106,8 @@ const Hero = () => {
               </button>
             </div>
           </div>
-          <div className="w-full relative">
+           {/* img right side */}
+          <div className="w-full relative hidden md:block ">
             <img
               src="chatting Lady.png"
               alt="chatting lady"

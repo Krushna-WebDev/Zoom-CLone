@@ -14,7 +14,7 @@ interface SidebarProps {
 const Sidebar = ({ participants }: SidebarProps) => {
   const { user } = useContext(UserContext)!;
   return (
-    <div className="h-screen bg-white border-r">
+    <div className="h-full flex flex-col bg-white border-r">
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <img
@@ -27,7 +27,7 @@ const Sidebar = ({ participants }: SidebarProps) => {
           </div>
         </div>
       </div>
-      <div className="p-4">
+      <div className="p-4 flex-1 overflow-y-auto">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
           Participants ({participants?.length})
         </h3>
@@ -51,6 +51,11 @@ const Sidebar = ({ participants }: SidebarProps) => {
             </div>
           ))}
         </div>
+      </div>
+      <div className="border-t p-4 flex-shrink-0">
+        <button className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded">
+          Leave
+        </button>
       </div>
     </div>
   );
