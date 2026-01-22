@@ -8,7 +8,7 @@ const Hero = () => {
   const navigate = useNavigate();
 
   // contexts
-  const { user, setJoinType, token, setToken } = useContext(UserContext)!;
+  const { user, token, setToken } = useContext(UserContext)!;
   const { JoinMeetingModal, setJoinMeetingModal, setRequireLoginModal } =
     useContext(ModalContext)!;
 
@@ -54,14 +54,12 @@ const Hero = () => {
 
   const joinAfterCode = () => {
     if (meetingcode) {
-      setJoinType("admin");
       navigate(`/chatarea/${meetingcode}`);
     }
   };
   const joinMeeting = async () => {
     if (inputCode) {
       navigate(`/chatarea/${inputCode}`);
-      setJoinType("member");
     }
   };
 

@@ -2,6 +2,9 @@ import React, { useContext, useEffect, useRef } from "react";
 import { SocketContext } from "../../../Context/SocketContext";
 import { useParams } from "react-router-dom";
 
+//todo:- testing video calling in multiple tabs or browser
+// TODO :- Offer glare
+
 const VideoCall = () => {
   //context
   const socket = useContext(SocketContext);
@@ -11,13 +14,14 @@ const VideoCall = () => {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const isScreenSharingRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
+  const pendingICERef = useRef<RTCIceCandidateInit[]>([]);
 
   useEffect(() => {
     const setupVideo = async () => {
       pcRef.current = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
-
+      if (!pcRef.current) return;
       pcRef.current.onicecandidate = (event) => {
         if (!socket) return;
         if (event.candidate) {
@@ -37,7 +41,7 @@ const VideoCall = () => {
       });
 
       stream.getTracks().forEach((track) => {
-        console.log("added track",track)
+        console.log("added track", track);
         pcRef.current?.addTrack(track, stream);
       });
 
@@ -54,16 +58,22 @@ const VideoCall = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("ice-candidate", async ({ candidate }: any) => {
-      if (!candidate) return;
-      console.log("candidates", candidate);
+    const handleIce = async ({ candidate }: any) => {
+      if (!candidate || !pcRef.current) return;
 
-      try {
-        await pcRef.current?.addIceCandidate(candidate);
-      } catch (err) {
-        console.error("Error adding ICE candidate:", err);
+      if (!pcRef.current.remoteDescription) {
+        pendingICERef.current.push(candidate);
+        return;
       }
-    });
+
+      await pcRef.current.addIceCandidate(candidate);
+    };
+
+    socket.on("ice-candidate", handleIce);
+
+    return () => {
+      socket.off("ice-candidate", handleIce);
+    };
   }, [socket]);
 
   const sendOffer = async () => {
@@ -82,7 +92,7 @@ const VideoCall = () => {
   };
   const toggleVideo = () => {
     const videoTrack = getCameraVideoTrack();
-    console.log("video track",videoTrack)
+    console.log("video track", videoTrack);
     if (!videoTrack) return;
 
     videoTrack.enabled = !videoTrack.enabled;
@@ -124,20 +134,19 @@ const VideoCall = () => {
     try {
       if (!socket) return;
       socket.on("offer", async (offer) => {
-        console.log("offer mila:", offer);
-
         if (!pcRef.current) {
           console.warn("PC not ready yet, skipping offer");
           return;
         }
 
         await pcRef.current.setRemoteDescription(
-          new RTCSessionDescription(offer)
+          new RTCSessionDescription(offer),
         );
+        pendingICERef.current.forEach((c) => pcRef.current?.addIceCandidate(c));
+        pendingICERef.current = [];
         const answer = await pcRef.current.createAnswer();
         await pcRef.current.setLocalDescription(answer);
         socket.emit("answer", { answer, meetingId });
-        console.log("ans created", answer);
       });
     } catch (error) {}
   }, []);
@@ -146,17 +155,15 @@ const VideoCall = () => {
     if (!socket) return;
 
     socket.on("answer", async (answer) => {
-      console.log("answer mila", answer);
-      if (pcRef.current) {
-        await pcRef.current.setRemoteDescription(
-          new RTCSessionDescription(answer)
-        );
-      }
-    });
+      if (!pcRef.current) return;
 
-    return () => {
-      socket.off("answer");
-    };
+      await pcRef.current.setRemoteDescription(
+        new RTCSessionDescription(answer),
+      );
+
+      pendingICERef.current.forEach((c) => pcRef.current?.addIceCandidate(c));
+      pendingICERef.current = [];
+    });
   }, [socket]);
   return (
     <>

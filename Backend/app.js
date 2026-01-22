@@ -9,6 +9,7 @@ import meetingRoute from "./Routes/meeting.routes.js";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import DOMPurify from "isomorphic-dompurify";
+import Meeting from "./Model/meetingModel.js";
 dotenv.config();
 const app = express();
 app.use(cookieParser());
@@ -37,7 +38,7 @@ const deleteRoom = {
 };
 
 io.on("connection", (socket) => {
-  const authToken = socket.handshake.auth; 
+  const authToken = socket.handshake.auth;
   if (!authToken.token) {
     socket.disconnect();
     console.log("socket disconnect");
@@ -46,11 +47,19 @@ io.on("connection", (socket) => {
   const decoded = jwt.verify(authToken.token, process.env.ACCESS_TOKEN_SECRET);
   socket.userId = decoded.id;
   // replace all userid sending from frontend to this socket.userid and remove sending useridd from frotnend
-  socket.on("join-room", ({ meetingId, userId, name, joinType }) => {
+  socket.on("join-room", async ({ meetingId, userId, name }) => {
+    const meeting = await Meeting.findOne({ MeetingId: meetingId });
+    const isCaller = socket.userId === meeting.Created_By;
+
+    console.log("iscaller", isCaller);
     socket.join(meetingId);
     socket.meetingId = meetingId;
     socket.name = name;
 
+    socket.emit("role", {
+      isCaller,
+      isAdmin: isCaller,
+    });
     socket.to(meetingId).emit("userJoined", {
       type: "join",
       user: name,
@@ -59,6 +68,7 @@ io.on("connection", (socket) => {
     socket.on("offer", ({ offer, meetingId }) => {
       socket.to(meetingId).emit("offer", offer);
     });
+
     socket.on("answer", ({ answer, meetingId }) => {
       socket.to(meetingId).emit("answer", answer);
     });
@@ -66,6 +76,7 @@ io.on("connection", (socket) => {
     socket.on("ice-candidate", ({ candidate, meetingId }) => {
       socket.to(meetingId).emit("ice-candidate", { candidate });
     });
+
     if (deleteRoom[meetingId]) {
       clearTimeout(deleteRoom[meetingId]);
       delete deleteRoom[meetingId];
@@ -81,11 +92,13 @@ io.on("connection", (socket) => {
         userId,
         name,
         socketId: socket.id,
-        joinType,
       });
     }
 
-    io.to(meetingId).emit("Connected-Users", roomUser[meetingId]);
+    io.to(meetingId).emit("Connected-Users", {
+      users: roomUser[meetingId],
+      adminUserId: meeting.Created_By,
+    });
   });
 
   socket.on("send-message", ({ meetingId, message, userId }) => {

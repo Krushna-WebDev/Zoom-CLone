@@ -12,15 +12,15 @@ interface UserContextInterface {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   token: string | null;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  joinType: string;
-  setJoinType: React.Dispatch<React.SetStateAction<string>>;
+  isCaller : string,
+  setIsCaller:React.Dispatch<React.SetStateAction<string>>
 }
 
 export const UserContext = createContext<UserContextInterface | null>(null);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [joinType, setJoinType] = useState("");
+  const [isCaller, setIsCaller] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -57,7 +57,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [token]);
   return (
     <UserContext.Provider
-      value={{ user, setUser, token, setToken, joinType, setJoinType }}
+      value={{ user, setUser, token, setToken,isCaller,setIsCaller }}
     >
       {children}
     </UserContext.Provider>

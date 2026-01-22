@@ -34,12 +34,10 @@ type Message = joinMsg | leaveMsg | ChatMsg;
 const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   const navigate = useNavigate();
   const { meetingId } = useParams();
-  const { joinType } = useContext(UserContext)!;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const inputref = useRef<HTMLInputElement | null>(null);
-
-  const { user } = useContext(UserContext)!;
+  const { user, setIsCaller } = useContext(UserContext)!;
   const socket = useContext(SocketContext)!;
 
   useEffect(() => {
@@ -54,7 +52,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
       meetingId,
       userId: user._id,
       name: user.name,
-      joinType,
     });
 
     socket.on("userJoined", (msg: joinMsg) => {
@@ -68,7 +65,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("Connected-Users", (data) => {
-      setparticipants(data);
+      setIsCaller(data.adminUserId);
+      setparticipants(data.users);
     });
 
     return () => {
@@ -78,6 +76,14 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
       socket.off("Connected-Users");
     };
   }, [meetingId, user]);
+
+// todo use of role to send offer
+
+  // useEffect(() => {
+  //   socket.on("role", ({ isCaller }) => {
+  //     console.log("caller", isCaller);
+  //   });
+  // }, [socket]);
 
   // Leave confirmation → redirect
   useEffect(() => {
@@ -105,7 +111,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     socket.emit("leave-room", meetingId);
   };
 
-  console.log("messages", messages);
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -219,7 +224,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           <button
             onClick={sendMessage}
             type="button"
-            disabled={!newMessage.trim()} 
+            disabled={!newMessage.trim()}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 active:scale-95 flex items-center gap-2
              ${
                newMessage.trim()
