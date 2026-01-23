@@ -37,122 +37,166 @@ const deleteRoom = {
   // "roomnumber2":function of deletetion
 };
 
-io.on("connection", (socket) => {
-  const authToken = socket.handshake.auth;
-  if (!authToken.token) {
+// Helper function to validate user per event
+function validateUser(socket, callback) {
+  try {
+    const authToken = socket.handshake.auth;
+    if (!authToken.token) {
+      socket.disconnect();
+      return false;
+    }
+    const decoded = jwt.verify(
+      authToken.token,
+      process.env.ACCESS_TOKEN_SECRET,
+    );
+    socket.userId = decoded.id;
+    return true;
+  } catch (error) {
+    console.error("JWT validation failed:", error);
     socket.disconnect();
-    console.log("socket disconnect");
-    return;
+    return false;
   }
-  const decoded = jwt.verify(authToken.token, process.env.ACCESS_TOKEN_SECRET);
-  socket.userId = decoded.id;
-  // replace all userid sending from frontend to this socket.userid and remove sending useridd from frotnend
+}
+
+io.on("connection", (socket) => {
+  if (!validateUser(socket)) return;
+
   socket.on("join-room", async ({ meetingId, userId, name }) => {
-    const meeting = await Meeting.findOne({ MeetingId: meetingId });
-    const isCaller = socket.userId === meeting.Created_By;
+    try {
+      // Re-validate user on join
+      if (!validateUser(socket)) return;
+      const meeting = await Meeting.findOne({ MeetingId: meetingId });
+      if (!meeting) {
+        socket.emit("error", "Meeting not found");
+        return;
+      }
 
-    console.log("iscaller", isCaller);
-    socket.join(meetingId);
-    socket.meetingId = meetingId;
-    socket.name = name;
+      if (!roomUser[meetingId]) {
+        roomUser[meetingId] = [];
+      }
 
-    socket.emit("role", {
-      isCaller,
-      isAdmin: isCaller,
-    });
-    socket.to(meetingId).emit("userJoined", {
-      type: "join",
-      user: name,
-    });
 
-    socket.on("offer", ({ offer, meetingId }) => {
-      socket.to(meetingId).emit("offer", offer);
-    });
+      console.log(roomUser[meetingId].length)
+      const isCaller = socket.userId === meeting.Created_By;
 
-    socket.on("answer", ({ answer, meetingId }) => {
-      socket.to(meetingId).emit("answer", answer);
-    });
+      socket.join(meetingId);
+      socket.meetingId = meetingId;
+      socket.name = name;
 
-    socket.on("ice-candidate", ({ candidate, meetingId }) => {
-      socket.to(meetingId).emit("ice-candidate", { candidate });
-    });
-
-    if (deleteRoom[meetingId]) {
-      clearTimeout(deleteRoom[meetingId]);
-      delete deleteRoom[meetingId];
-    }
-
-    if (!roomUser[meetingId]) {
-      roomUser[meetingId] = [];
-    }
-
-    const exists = roomUser[meetingId].some((u) => u.userId === userId);
-    if (!exists) {
-      roomUser[meetingId].push({
-        userId,
-        name,
-        socketId: socket.id,
+      socket.emit("role", {
+        isCaller,
+        isAdmin: isCaller,
       });
-    }
+      socket.to(meetingId).emit("userJoined", {
+        type: "join",
+        user: name,
+      });
 
-    io.to(meetingId).emit("Connected-Users", {
-      users: roomUser[meetingId],
-      adminUserId: meeting.Created_By,
-    });
+      socket.on("offer", ({ offer, meetingId }) => {
+        socket.to(meetingId).emit("offer", offer);
+      });
+
+      socket.on("answer", ({ answer, meetingId }) => {
+        socket.to(meetingId).emit("answer", answer);
+      });
+
+      socket.on("ice-candidate", ({ candidate, meetingId }) => {
+        socket.to(meetingId).emit("ice-candidate", { candidate });
+      });
+
+      if (deleteRoom[meetingId]) {
+        clearTimeout(deleteRoom[meetingId]);
+        delete deleteRoom[meetingId];
+      }
+
+      // Atomic check and add to prevent duplicates
+      const exists = roomUser[meetingId].some((u) => u.userId === userId);
+      if (!exists) {
+        roomUser[meetingId].push({
+          userId,
+          name,
+          socketId: socket.id,
+        });
+      }
+
+      io.to(meetingId).emit("Connected-Users", {
+        users: roomUser[meetingId],
+        adminUserId: meeting.Created_By,
+      });
+    } catch (error) {
+      console.error("Error in join-room:", error);
+      socket.emit("error", "Failed to join room");
+    }
   });
 
   socket.on("send-message", ({ meetingId, message, userId }) => {
-    const name = socket.name;
-    const cleanText = DOMPurify.sanitize(message);
-    console.log("cleantext", cleanText);
-    io.to(meetingId).emit("receive-message", {
-      type: "Msg",
-      user: name,
-      text: cleanText,
-      userId,
-    });
+    try {
+      if (!validateUser(socket)) return;
+      const name = socket.name;
+      const cleanText = DOMPurify.sanitize(message);
+      console.log("cleantext", cleanText);
+      io.to(meetingId).emit("receive-message", {
+        type: "Msg",
+        user: name,
+        text: cleanText,
+        userId,
+      });
+    } catch (error) {
+      console.error("Error in send-message:", error);
+    }
   });
-  // repeat ho raha hai yaha par fix chahiye(done)
 
   function cleanupUser(meetingId, socket) {
-    if (!roomUser[meetingId]) return;
+    try {
+      if (!roomUser[meetingId]) return;
 
-    roomUser[meetingId] = roomUser[meetingId].filter(
-      (u) => u.socketId !== socket.id,
-    );
+      roomUser[meetingId] = roomUser[meetingId].filter(
+        (u) => u.socketId !== socket.id,
+      );
 
-    if (roomUser[meetingId].length === 0) {
-      deleteRoom[meetingId] = setTimeout(() => {
-        delete roomUser[meetingId];
-        delete deleteRoom[meetingId];
-      }, 60000);
+      if (roomUser[meetingId].length === 0) {
+        deleteRoom[meetingId] = setTimeout(() => {
+          delete roomUser[meetingId];
+          delete deleteRoom[meetingId];
+        }, 60000);
+      }
+
+      io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
+    } catch (error) {
+      console.error("Error in cleanupUser:", error);
     }
-
-    io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
   }
 
   socket.on("leave-room", (meetingId) => {
-    socket.leave(meetingId);
-    socket.to(meetingId).emit("userLeft", {
-      type: "leave",
-      user: socket.name,
-    });
+    try {
+      socket.leave(meetingId);
+      socket.to(meetingId).emit("userLeft", {
+        type: "leave",
+        user: socket.name,
+      });
 
-    cleanupUser(meetingId, socket);
+      cleanupUser(meetingId, socket);
 
-    socket.emit("left-room-success");
+      socket.emit("left-room-success");
+    } catch (error) {
+      console.error("Error in leave-room:", error);
+    }
   });
 
   socket.on("disconnect", () => {
-    const meetingId = socket.meetingId;
-    if (!meetingId) return;
-    socket.to(meetingId).emit("userLeft", {
-      type: "leave",
-      user: socket.name,
-    });
-    cleanupUser(meetingId, socket);
+    try {
+      const meetingId = socket.meetingId;
+      if (!meetingId) return;
+      socket.to(meetingId).emit("userLeft", {
+        type: "leave",
+        user: socket.name,
+      });
+      cleanupUser(meetingId, socket);
 
-    io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
+      io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
+    } catch (error) {
+      console.error("Error in disconnect:", error);
+    }
   });
 });
 

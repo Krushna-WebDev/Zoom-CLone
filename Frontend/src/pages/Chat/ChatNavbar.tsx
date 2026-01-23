@@ -29,7 +29,6 @@ export const ChatNavbar = () => {
         </Link>
       </div>
       <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
-        <span className="text-sm font-medium text-white/70">Room:</span>
         <span className="font-mono text-sm font-semibold text-white">
           Room:
         </span>

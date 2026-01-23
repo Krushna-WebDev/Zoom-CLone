@@ -1,8 +1,9 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
+import { UserContext } from "../../Context/Context";
 interface formdatainterface {
   username: string;
   password: string;
@@ -14,6 +15,7 @@ const Login = () => {
     password: "",
   });
 
+  const { token, setToken } = useContext(UserContext)!;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setformdata({
       ...formdata,
@@ -27,15 +29,14 @@ const Login = () => {
       const res = await axios.post(
         "http://localhost:5000/api/v1/auth/login",
         formdata,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       alert(res.data.message);
       setformdata({
         username: "",
         password: "",
       });
-      localStorage.setItem("token", res.data.accessToken);
-
+      setToken(res.data.accessToken);
       // navigate("/")
     } catch (error) {
       alert(error);
@@ -51,7 +52,6 @@ const Login = () => {
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
 
     window.location.href = googleAuthUrl;
-    
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

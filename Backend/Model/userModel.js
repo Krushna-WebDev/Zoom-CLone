@@ -1,11 +1,29 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const userSchema = new Schema({
-  name: { type: String},
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: false },
-  googleId: { type: String },
-  profilePic: { type: String, required: false },
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: function() {
+      return !this.googleId; // Required only if no Google ID
+    },
+  },
+  googleId: {
+    type: String,
+    required: false,
+  },
+  avatar: {
+    type: String,
+    required: false,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

@@ -9,3 +9,4 @@ export const registerSchema = z.object({
   googleId: z.string().optional(),
   profilePic: z.string().url("Invalid image URL").optional(),
 });
+

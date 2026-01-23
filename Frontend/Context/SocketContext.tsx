@@ -5,7 +5,6 @@ import { UserContext } from "./Context";
 export const SocketContext = createContext<Socket | null>(null);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  // todo :- got token from localstorage but need to use from usestate and store in state not in localstorage
 
   const { token } = useContext(UserContext)!;
   const [socket, setSocket] = React.useState<Socket | null>(null);
