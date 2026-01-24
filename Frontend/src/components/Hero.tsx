@@ -1,8 +1,9 @@
 import axios from "axios";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
+import { toast } from "react-toastify";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Hero = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (res.status === 201) {
         setMeetingCode(res.data.meetingId);
@@ -38,7 +39,7 @@ const Hero = () => {
             "http://localhost:5000/api/v1/auth/refresh",
             {
               withCredentials: true,
-            }
+            },
           );
           const newToken = refreshRes.data.accessToken;
           localStorage.setItem("token", newToken);
@@ -52,14 +53,58 @@ const Hero = () => {
     }
   };
 
-  const joinAfterCode = () => {
-    if (meetingcode) {
-      navigate(`/chatarea/${meetingcode}`);
+  //optimize it 
+
+  const joinAfterCode = async () => {
+    if (!meetingcode) return;
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/v1/meeting/check-room/${meetingcode}`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (res.data.isJoinable) {
+        navigate(`/chatarea/${meetingcode}`);
+      } else {
+        toast.error(
+          `Room is full (${res.data.currentUsers}/${res.data.maxUsers} users)`,
+        );
+      }
+    } catch (error: any) {
+      toast.error("Error checking room. Please try again.");
+      console.error(error);
     }
   };
   const joinMeeting = async () => {
-    if (inputCode) {
-      navigate(`/chatarea/${inputCode}`);
+    if (!inputCode) return;
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/v1/meeting/check-room/${inputCode}`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      console.log("res", res.data);
+
+      if (res.data.isJoinable) {
+        navigate(`/chatarea/${inputCode}`);
+      } else {
+        toast.error(
+          `Room is full (${res.data.currentUsers}/${res.data.maxUsers} users)`,
+        );
+      }
+    } catch (error: any) {
+      toast.error("Error checking room. Please try again.");
+      console.error(error);
     }
   };
 
@@ -76,14 +121,14 @@ const Hero = () => {
       >
         <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
         <div className="relative z-10 mx-auto max-w-7xl px-4 flex w-full  items-center ">
-           {/* left side text */}
+          {/* left side text */}
           <div className="w-full m-1">
             <h1 className="text-6xl font-raleway">
               <span className=" pr-5 bg-clip-text text-transparent bg-gradient-to-r from-[#B29FD9] to-[#F97316]">
                 Say Hi!
               </span>
               To Your Friend & Family
-            </h1> 
+            </h1>
             <p className="font-poppins font-semibold mt-8 mr-30 text-gray-600">
               Talk. Share. Hang Out. Stay connected with friends, family, or
               your team anytime, anywhere. Our platform makes video calls
@@ -104,7 +149,7 @@ const Hero = () => {
               </button>
             </div>
           </div>
-           {/* img right side */}
+          {/* img right side */}
           <div className="w-full relative hidden md:block ">
             <img
               src="chatting Lady.png"

@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import DOMPurify from "isomorphic-dompurify";
 import Meeting from "./Model/meetingModel.js";
+import { roomUser, deleteRoom } from "./config/roomManager.js";
 dotenv.config();
 const app = express();
 app.use(cookieParser());
@@ -30,12 +31,6 @@ const io = new Server(server, {
     credentials: true,
   },
 });
-
-const roomUser = {};
-const deleteRoom = {
-  // "roomnumber1":function of deletetion
-  // "roomnumber2":function of deletetion
-};
 
 // Helper function to validate user per event
 function validateUser(socket, callback) {
@@ -75,8 +70,11 @@ io.on("connection", (socket) => {
         roomUser[meetingId] = [];
       }
 
+      if (roomUser[meetingId].length >= 2) {
+        console.log("max size reached");
+        return;
+      }
 
-      console.log(roomUser[meetingId].length)
       const isCaller = socket.userId === meeting.Created_By;
 
       socket.join(meetingId);
@@ -134,7 +132,6 @@ io.on("connection", (socket) => {
       if (!validateUser(socket)) return;
       const name = socket.name;
       const cleanText = DOMPurify.sanitize(message);
-      console.log("cleantext", cleanText);
       io.to(meetingId).emit("receive-message", {
         type: "Msg",
         user: name,
