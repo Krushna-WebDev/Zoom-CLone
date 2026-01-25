@@ -12,8 +12,10 @@ interface UserContextInterface {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   token: string | null;
   setToken: React.Dispatch<React.SetStateAction<string | null>>;
-  isCaller : string,
-  setIsCaller:React.Dispatch<React.SetStateAction<string>>
+  isCaller: string;
+  setIsCaller: React.Dispatch<React.SetStateAction<string>>;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const UserContext = createContext<UserContextInterface | null>(null);
@@ -21,16 +23,17 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isCaller, setIsCaller] = useState("");
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchUser = async () => {
+      setIsLoading(true);
       try {
         const res = await axios.get(
           "http://localhost:5000/api/v1/auth/getuser",
           {
             withCredentials: true,
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         setUser(res.data.user);
       } catch (error: any) {
@@ -41,7 +44,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
               "http://localhost:5000/api/v1/auth/refresh",
               {
                 withCredentials: true,
-              }
+              },
             );
             setToken(refreshRes.data.accessToken);
           } catch (refreshError) {
@@ -50,6 +53,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
           console.error("Error fetching user:", error);
         }
+      } finally {
+        setIsLoading(false); // Always set to false after fetch completes
       }
     };
 
@@ -57,7 +62,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [token]);
   return (
     <UserContext.Provider
-      value={{ user, setUser, token, setToken,isCaller,setIsCaller }}
+      value={{
+        user,
+        setUser,
+        token,
+        setToken,
+        isCaller,
+        setIsCaller,
+        isLoading,
+        setIsLoading
+      }}
     >
       {children}
     </UserContext.Provider>

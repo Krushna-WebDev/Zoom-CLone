@@ -25,8 +25,6 @@ const Home = () => {
   const { loginModel, setLoginModel } = useContext(ModalContext)!;
   const { RequireLoginModal, setRequireLoginModal } = useContext(ModalContext)!;
   const { token,setToken } = useContext(UserContext)!;
-
-  console.log("token from context", token)
   //states
   const [formdata, setformdata] = useState<formdatainterface>({
     username: "",

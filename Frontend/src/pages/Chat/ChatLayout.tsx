@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import ChatArea from "./ChatArea";
 import { ChatNavbar } from "./ChatNavbar";
 import VideoCall from "../Video/VideoCall";
+import { UserContext } from "../../../Context/Context";
+import { useNavigate } from "react-router-dom";
 
 interface Participant {
   userId: string;
@@ -11,8 +13,16 @@ interface Participant {
 
 const ChatLayout = () => {
   const [participants, setparticipants] = useState<Participant[]>([]);
+  const { token, isLoading } = useContext(UserContext)!;
   const [mode, setMode] = useState<"chat" | "video">("chat");
 
+  const navigate = useNavigate();
+  console.log("token in layout", token);
+  useEffect(() => {
+    if (!isLoading && !token) {
+      navigate("/notfound");
+    }
+  }, [isLoading, token, navigate]);
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <ChatNavbar />

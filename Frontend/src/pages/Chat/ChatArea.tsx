@@ -47,6 +47,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   // Join room + listeners
   useEffect(() => {
     if (!user) return;
+    if (!socket) return;
 
     socket.emit("join-room", {
       meetingId,
@@ -75,9 +76,9 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
       socket.off("userLeft");
       socket.off("Connected-Users");
     };
-  }, [meetingId, user]);
+  }, [meetingId, user, socket]);
 
-// todo use of role to send offer
+  // todo use of role to send offer
 
   // useEffect(() => {
   //   socket.on("role", ({ isCaller }) => {
@@ -87,6 +88,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
 
   // Leave confirmation → redirect
   useEffect(() => {
+    if (!socket) return;
     socket.on("left-room-success", () => {
       navigate("/");
     });
@@ -96,6 +98,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   }, []);
 
   const sendMessage = () => {
+    if (!socket) return;
     const text = newMessage.trim();
     if (!text) return;
     socket.emit("send-message", {
@@ -108,6 +111,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   };
 
   const LeaveRoom = () => {
+    if (!socket) return;
     socket.emit("leave-room", meetingId);
   };
 

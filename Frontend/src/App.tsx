@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Footer from "./components/Footer";
 import ChatLayout from "./pages/Chat/ChatLayout";
+import NotFound404 from "./pages/NotFound404";
 
 const App = () => {
   return (
@@ -35,7 +36,9 @@ function Layout() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/notfound" element={<NotFound404 />} />
         <Route path="/chatarea/:meetingId" element={<ChatLayout />} />
+        
       </Routes>
       {showNavbar && <Footer />}
     </div>
