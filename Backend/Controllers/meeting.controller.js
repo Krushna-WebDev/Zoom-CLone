@@ -76,9 +76,9 @@ export const checkRoomCapacity = async (req, res) => {
       return res.status(404).json({ message: "Meeting not found" });
     }
     const currentUsers = roomUser[meetingId] ? roomUser[meetingId].length : 0;
-    const isJoinable = currentUsers < 2;
+    const isJoinable = currentUsers < 4;
     console.log("joinable",isJoinable)
-    res.status(200).json({ isJoinable, currentUsers, maxUsers: 2 });
+    res.status(200).json({ isJoinable, currentUsers, maxUsers: 4 });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
         roomUser[meetingId] = [];
       }
 
-      if (roomUser[meetingId].length >= 2) {
+      if (roomUser[meetingId].length >= 4) {
         console.log("max size reached");
         return;
       }
@@ -80,6 +80,20 @@ io.on("connection", (socket) => {
       socket.join(meetingId);
       socket.meetingId = meetingId;
       socket.name = name;
+
+      await Meeting.updateOne(
+        { MeetingId: meetingId },
+        {
+          $addToSet: {
+            Participants: {
+              userId: socket.userId,
+              name,
+              // email,
+              // role,
+            },
+          },
+        },
+      );
 
       socket.emit("role", {
         isCaller,
