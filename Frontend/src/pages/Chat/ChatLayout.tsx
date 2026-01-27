@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 interface Participant {
   userId: string;
   name: string;
+  profilePic:string
 }
 
 const ChatLayout = () => {

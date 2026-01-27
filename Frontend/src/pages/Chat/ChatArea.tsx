@@ -7,6 +7,7 @@ import { SocketContext } from "../../../Context/SocketContext";
 interface Participants {
   userId: string;
   name: string;
+  profilePic:string
 }
 
 interface ChatAreaProps {
@@ -67,7 +68,9 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     });
     socket.on("Connected-Users", (data) => {
       setIsCaller(data.adminUserId);
+      console.log("with profilepic",data.users)
       setparticipants(data.users);
+
     });
 
     return () => {
@@ -100,6 +103,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   const sendMessage = () => {
     if (!socket) return;
     const text = newMessage.trim();
+    console.log("text f",text)
     if (!text) return;
     socket.emit("send-message", {
       meetingId,

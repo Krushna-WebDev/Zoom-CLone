@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import DOMPurify from "isomorphic-dompurify";
 import Meeting from "./Model/meetingModel.js";
 import { roomUser, deleteRoom } from "./config/roomManager.js";
+import User from "./Model/userModel.js";
 dotenv.config();
 const app = express();
 app.use(cookieParser());
@@ -33,7 +34,7 @@ const io = new Server(server, {
 });
 
 // Helper function to validate user per event
-function validateUser(socket, callback) {
+async function validateUser(socket, callback) {
   try {
     const authToken = socket.handshake.auth;
     if (!authToken.token) {
@@ -45,6 +46,8 @@ function validateUser(socket, callback) {
       process.env.ACCESS_TOKEN_SECRET,
     );
     socket.userId = decoded.id;
+    const user = await User.findById({ _id: socket.userId });
+    socket.user = user;
     return true;
   } catch (error) {
     console.error("JWT validation failed:", error);
@@ -56,10 +59,11 @@ function validateUser(socket, callback) {
 io.on("connection", (socket) => {
   if (!validateUser(socket)) return;
 
-  socket.on("join-room", async ({ meetingId, userId, name }) => {
+  socket.on("join-room", async ({ meetingId, name }) => {
     try {
       // Re-validate user on join
       if (!validateUser(socket)) return;
+
       const meeting = await Meeting.findOne({ MeetingId: meetingId });
       if (!meeting) {
         socket.emit("error", "Meeting not found");
@@ -81,19 +85,24 @@ io.on("connection", (socket) => {
       socket.meetingId = meetingId;
       socket.name = name;
 
-      await Meeting.updateOne(
-        { MeetingId: meetingId },
-        {
-          $addToSet: {
-            Participants: {
-              userId: socket.userId,
-              name,
-              // email,
-              // role,
+      const userExists = await meeting.Participants.some(
+        (p) => p.userId === socket.userId,
+      );
+      if (!userExists) {
+        await Meeting.updateOne(
+          { MeetingId: meetingId },
+          {
+            $addToSet: {
+              Participants: {
+                userId: socket.userId,
+                name,
+                // email,
+                // role,
+              },
             },
           },
-        },
-      );
+        );
+      }
 
       socket.emit("role", {
         isCaller,
@@ -121,12 +130,17 @@ io.on("connection", (socket) => {
         delete deleteRoom[meetingId];
       }
 
+      console.log("socket me store user", socket.user);
       // Atomic check and add to prevent duplicates
-      const exists = roomUser[meetingId].some((u) => u.userId === userId);
+      const exists = roomUser[meetingId].some(
+        (u) => u.userId === socket.userId,
+      );
+
       if (!exists) {
         roomUser[meetingId].push({
-          userId,
+          userId: socket.userId,
           name,
+          profilePic: socket.user.profilePic,
           socketId: socket.id,
         });
       }
@@ -141,7 +155,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send-message", ({ meetingId, message, userId }) => {
+  socket.on("send-message", ({ meetingId, message }) => {
     try {
       if (!validateUser(socket)) return;
       const name = socket.name;
@@ -150,7 +164,7 @@ io.on("connection", (socket) => {
         type: "Msg",
         user: name,
         text: cleanText,
-        userId,
+        userId: socket.userId,
       });
     } catch (error) {
       console.error("Error in send-message:", error);

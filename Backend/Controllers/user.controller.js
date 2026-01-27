@@ -136,6 +136,7 @@ export const GoogleLogin = async (req, res) => {
     );
 
     const gUser = userInfoRes.data;
+    console.log("gUser",gUser)
     // 3) Find or create user in DB
     let user = await User.findOne({ googleId: gUser.sub });
 

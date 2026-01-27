@@ -4,6 +4,7 @@ import { UserContext } from "../../../Context/Context";
 interface Participant {
   userId: string;
   name: string;
+  profilePic: string;
 }
 
 interface SidebarProps {
@@ -12,13 +13,14 @@ interface SidebarProps {
 
 const Sidebar = ({ participants }: SidebarProps) => {
   const { user, isCaller } = useContext(UserContext)!;
+  console.log("parti", participants);
   return (
     <div className="h-full flex flex-col bg-white border-r">
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <img
             src={user?.profilePic}
-            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 "
           />
           <div>
             <h3 className="font-semibold text-gray-800">{user?.name}</h3>
@@ -34,7 +36,10 @@ const Sidebar = ({ participants }: SidebarProps) => {
           {participants?.map((participant) => (
             <div key={participant.userId} className="flex items-center gap-3">
               <div className="relative">
-                <div className="py-5 px-5 rounded-full bg-gray-700 "></div>
+                <img
+                  src={participant?.profilePic}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 "
+                />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>
               </div>
 
@@ -42,10 +47,10 @@ const Sidebar = ({ participants }: SidebarProps) => {
                 <span>{participant.name}</span>
 
                 {participant.userId === isCaller && (
-                    <span className="bg-blue-100 text-blue-800 text-xs font-bold uppercase px-2.5 py-0.5 rounded-full">
-                      Admin
-                    </span>
-                  )}
+                  <span className="bg-blue-100 text-blue-800 text-xs font-bold uppercase px-2.5 py-0.5 rounded-full">
+                    Admin
+                  </span>
+                )}
               </p>
             </div>
           ))}
