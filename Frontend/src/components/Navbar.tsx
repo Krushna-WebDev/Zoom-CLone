@@ -1,27 +1,28 @@
 import axios from "axios";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 
 const Navbar = () => {
-  const { user, setUser,token,setToken } = useContext(UserContext)!;
+  const { user, setUser, token, setToken } = useContext(UserContext)!;
   const { setLoginModel } = useContext(ModalContext)!;
+  const [open, setopen] = useState(false);
 
   const logout = async () => {
     try {
       await axios.post(
         "http://localhost:5000/api/v1/auth/logout",
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setUser(null);
-      setToken(null)
+      setToken(null);
     } catch (error) {
       console.log("Error during logout", error);
     }
   };
-
+  
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-md border-b border-white/20 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -36,6 +37,7 @@ const Navbar = () => {
           </h1>
         </Link>
 
+        {/* fix this navigation */}
         <nav className="flex gap-4 sm:gap-6">
           {["Home", "About", "Features"].map((page) => (
             <Link
@@ -51,33 +53,102 @@ const Navbar = () => {
         </nav>
 
         {user ? (
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+          <div className="relative flex items-center gap-4">
+            {/* User Trigger Button */}
+            <button
+              onClick={() => setopen(!open)}
+              className="group flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3 shadow-sm transition-all hover:border-orange-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+            >
+              <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
                 <img
                   src={user?.profilePic || "/defaultProfile.jpg"}
-                  alt={`${user?.name || "User"}'s profile`}
-                  className="w-full h-full object-cover"
+                  alt={user?.name}
+                  className="h-full w-full object-cover"
                 />
               </div>
-              <span className="font-raleway font-medium text-gray-700">
+
+              <span className="max-w-[100px] truncate text-sm font-semibold text-gray-700">
                 {user.name}
               </span>
-            </div>
 
-            <button
-              onClick={logout}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-2 px-4 rounded-lg shadow-md text-sm font-medium transition-transform duration-200 active:scale-95"
-            >
-              Logout
+              {/* Animated Chevron */}
+              <svg
+                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </button>
+
+            {/* Dropdown Menu */}
+            {open && (
+              <>
+                {/* Invisible backdrop to close menu when clicking outside */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setopen(false)}
+                ></div>
+
+                <div className="absolute right-0 top-12 z-20 w-48 origin-top-right rounded-xl border border-gray-100 bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                    <p className="text-xs text-gray-500">Signed in as</p>
+                    <p className="truncate text-sm font-medium text-gray-900">
+                      {user.email || user.name}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setopen(false)}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                  >
+                    Profile
+                  </button>
+
+                  <button
+                    onClick={() => setopen(false)}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                  >
+                    Settings
+                  </button>
+
+                  <Link
+                    to="/history"
+                    onClick={() => setopen(false)}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                  >
+                    History
+                  </Link>
+
+                  <div className="my-1 border-t border-gray-100"></div>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      setopen(false);
+                    }}
+                    className="flex w-full items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <button
             onClick={() => setLoginModel(true)}
-            className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-md text-sm font-medium transition-transform duration-200 active:scale-95"
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-0.5 font-medium text-white shadow-lg transition-all hover:text-white focus:outline-none focus:ring-4 focus:ring-orange-300 group-hover:from-orange-600 group-hover:to-orange-700"
           >
-            Login
+            <span className="relative rounded-md bg-opacity-0 px-6 py-2 transition-all duration-75 ease-in group-hover:bg-opacity-0">
+              Login
+            </span>
           </button>
         )}
       </div>

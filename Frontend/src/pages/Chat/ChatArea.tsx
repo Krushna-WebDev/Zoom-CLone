@@ -7,7 +7,7 @@ import { SocketContext } from "../../../Context/SocketContext";
 interface Participants {
   userId: string;
   name: string;
-  profilePic:string
+  profilePic: string;
 }
 
 interface ChatAreaProps {
@@ -29,6 +29,7 @@ interface ChatMsg {
   user: string;
   text: string;
   userId: string;
+  Time: string;
 }
 
 type Message = joinMsg | leaveMsg | ChatMsg;
@@ -61,6 +62,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     });
 
     socket.on("receive-message", (msg: ChatMsg) => {
+      console.log("msg OBj",msg)
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("userLeft", (msg: leaveMsg) => {
@@ -68,9 +70,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     });
     socket.on("Connected-Users", (data) => {
       setIsCaller(data.adminUserId);
-      console.log("with profilepic",data.users)
+      console.log("with profilepic", data.users);
       setparticipants(data.users);
-
     });
 
     return () => {
@@ -103,20 +104,13 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   const sendMessage = () => {
     if (!socket) return;
     const text = newMessage.trim();
-    console.log("text f",text)
     if (!text) return;
     socket.emit("send-message", {
       meetingId,
       message: newMessage,
-      userId: user?._id,
     });
     setNewMessage("");
     inputref.current?.focus();
-  };
-
-  const LeaveRoom = () => {
-    if (!socket) return;
-    socket.emit("leave-room", meetingId);
   };
 
   return (
@@ -187,30 +181,32 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           } else if (msg.type === "Msg") {
             //  (ME)
             if (msg.userId === user?._id) {
+              const msgTime = new Date(msg.Time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
               return (
                 <div key={`msg-${idx}`} className="flex justify-end mb-4">
                   <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tr-sm bg-blue-600 text-white shadow-md">
                     <p className="text-sm leading-relaxed break-words">
                       {msg.text}
                     </p>
-
-                    {/* Optional: Agar msg object me time hai to uncomment karein */}
-                    {/* <div className="text-[10px] text-blue-100 opacity-70 text-right mt-1">
-            10:30 AM
-          </div> 
-          */}
+                    <div className="text-[10px] text-blue-100 opacity-70 text-right mt-1">
+                      {msgTime}
+                    </div>
                   </div>
                 </div>
               );
             }
             // others
             else {
+              const msgTime = new Date(msg.Time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
               return (
                 <div key={`msg-${idx}`} className="flex justify-start mb-4">
                   <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800 shadow-sm">
                     <p className="text-sm leading-relaxed break-words">
                       {msg.text}
                     </p>
+                    <div className="text-[10px] text-gray-600 opacity-70 text-right mt-1">
+                      {msgTime}
+                    </div>
                   </div>
                 </div>
               );
@@ -252,7 +248,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
             </svg>
           </button>
-          <button onClick={LeaveRoom}>leave</button>
+          {/* <button onClick={LeaveRoom}>leave</button> */}
         </div>
       </div>
     </div>

@@ -56,13 +56,13 @@ async function validateUser(socket, callback) {
   }
 }
 
-io.on("connection", (socket) => {
-  if (!validateUser(socket)) return;
+io.on("connection", async (socket) => {
+  if (!(await validateUser(socket))) return;
 
   socket.on("join-room", async ({ meetingId, name }) => {
     try {
       // Re-validate user on join
-      if (!validateUser(socket)) return;
+      if (!(await validateUser(socket))) return;
 
       const meeting = await Meeting.findOne({ MeetingId: meetingId });
       if (!meeting) {
@@ -155,9 +155,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send-message", ({ meetingId, message }) => {
+  socket.on("send-message", async ({ meetingId, message }) => {
     try {
-      if (!validateUser(socket)) return;
+      if (!(await validateUser(socket))) return;
+      console.log("msg obj", message);
       const name = socket.name;
       const cleanText = DOMPurify.sanitize(message);
       io.to(meetingId).emit("receive-message", {
@@ -165,6 +166,7 @@ io.on("connection", (socket) => {
         user: name,
         text: cleanText,
         userId: socket.userId,
+        Time: new Date(),
       });
     } catch (error) {
       console.error("Error in send-message:", error);
@@ -174,7 +176,6 @@ io.on("connection", (socket) => {
   function cleanupUser(meetingId, socket) {
     try {
       if (!roomUser[meetingId]) return;
-
       roomUser[meetingId] = roomUser[meetingId].filter(
         (u) => u.socketId !== socket.id,
       );
@@ -186,7 +187,11 @@ io.on("connection", (socket) => {
         }, 60000);
       }
 
-      io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
+      io.to(meetingId).emit("Connected-Users", {
+        users: roomUser[meetingId] ?? [],
+        // fallback admin id to first user in room (or null) so client shape stays consistent
+        adminUserId: roomUser[meetingId]?.[0]?.userId ?? null,
+      });
     } catch (error) {
       console.error("Error in cleanupUser:", error);
     }
@@ -217,8 +222,6 @@ io.on("connection", (socket) => {
         user: socket.name,
       });
       cleanupUser(meetingId, socket);
-
-      io.to(meetingId).emit("Connected-Users", roomUser[meetingId] ?? []);
     } catch (error) {
       console.error("Error in disconnect:", error);
     }

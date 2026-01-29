@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../Context/Context";
+import { SocketContext } from "../../../Context/SocketContext";
+import { useParams } from "react-router-dom";
 
 interface Participant {
   userId: string;
@@ -13,13 +15,20 @@ interface SidebarProps {
 
 const Sidebar = ({ participants }: SidebarProps) => {
   const { user, isCaller } = useContext(UserContext)!;
-  console.log("parti", participants);
+  const socket = useContext(SocketContext)!;
+  const { meetingId } = useParams();
+
+  const LeaveRoom = () => {
+    if (!socket) return;
+    socket.emit("leave-room", meetingId);
+  };
+
   return (
     <div className="h-full flex flex-col bg-white border-r">
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <img
-            src={user?.profilePic}
+            src={user?.profilePic ? user?.profilePic : "/defaultProfile.jpg"}
             className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 "
           />
           <div>
@@ -37,7 +46,11 @@ const Sidebar = ({ participants }: SidebarProps) => {
             <div key={participant.userId} className="flex items-center gap-3">
               <div className="relative">
                 <img
-                  src={participant?.profilePic}
+                  src={
+                    participant?.profilePic
+                      ? participant?.profilePic
+                      : "/defaultProfile.jpg"
+                  }
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 "
                 />
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></span>
@@ -57,7 +70,10 @@ const Sidebar = ({ participants }: SidebarProps) => {
         </div>
       </div>
       <div className="border-t p-4 flex-shrink-0">
-        <button className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded">
+        <button
+          onClick={LeaveRoom}
+          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded"
+        >
           Leave
         </button>
       </div>
