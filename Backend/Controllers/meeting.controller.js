@@ -77,10 +77,22 @@ export const checkRoomCapacity = async (req, res) => {
     }
     const currentUsers = roomUser[meetingId] ? roomUser[meetingId].length : 0;
     const isJoinable = currentUsers < 4;
-    console.log("joinable",isJoinable)
+    console.log("joinable", isJoinable);
     res.status(200).json({ isJoinable, currentUsers, maxUsers: 4 });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const MeetingHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const meetings = await Meeting.find({ "Participants.userId": userId });
+    if (!meetings) return res.status(404).json({ message: "No History Found" });
+    res.status(200).json(meetings);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

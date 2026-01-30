@@ -28,33 +28,37 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchUser = async () => {
       setIsLoading(true);
       try {
+        // If no token try to refresh first
+        if (!token) {
+          try {
+            const refreshRes = await axios.get(
+              "http://localhost:5000/api/v1/auth/refresh",
+              { withCredentials: true },
+            );
+            if (refreshRes?.data?.accessToken) {
+              setToken(refreshRes.data.accessToken);
+              return;
+            }
+          } catch (refreshError) {
+            console.error("Refresh failed:", refreshError);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // Only include Authorization header if token exists
         const res = await axios.get(
           "http://localhost:5000/api/v1/auth/getuser",
           {
             withCredentials: true,
-            headers: { Authorization: `Bearer ${token}` },
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           },
         );
         setUser(res.data.user);
       } catch (error: any) {
-        const status = error?.response?.status;
-        if (status === 403) {
-          try {
-            const refreshRes = await axios.get(
-              "http://localhost:5000/api/v1/auth/refresh",
-              {
-                withCredentials: true,
-              },
-            );
-            setToken(refreshRes.data.accessToken);
-          } catch (refreshError) {
-            console.error("Refresh failed:", refreshError);
-          }
-        } else {
-          console.error("Error fetching user:", error);
-        }
+        console.error("Error fetching user:", error);
       } finally {
-        setIsLoading(false); // Always set to false after fetch completes
+        setIsLoading(false);
       }
     };
 
@@ -70,7 +74,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         isCaller,
         setIsCaller,
         isLoading,
-        setIsLoading
+        setIsLoading,
       }}
     >
       {children}
