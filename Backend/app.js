@@ -21,6 +21,8 @@ app.use(
     credentials: true,
   }),
 );
+app.use("/images", express.static("public/images"));
+
 app.use(express.json());
 app.use(express.urlencoded());
 
@@ -50,7 +52,6 @@ async function validateUser(socket, callback) {
     socket.user = user;
     return true;
   } catch (error) {
-    console.error("JWT validation failed:", error);
     socket.disconnect();
     return false;
   }
@@ -75,7 +76,6 @@ io.on("connection", async (socket) => {
       }
 
       if (roomUser[meetingId].length >= 4) {
-        console.log("max size reached");
         return;
       }
 
@@ -85,19 +85,22 @@ io.on("connection", async (socket) => {
       socket.meetingId = meetingId;
       socket.name = name;
 
-      const userExists = await meeting.Participants.some(
-        (p) => p.userId === socket.userId,
+      const userExists = meeting.Participants.some(
+        (p) => p.userId.toString() === socket.userId,
       );
       if (!userExists) {
         await Meeting.updateOne(
-          { MeetingId: meetingId },
           {
-            $addToSet: {
+            MeetingId: meetingId,
+            "Participants.userId": { $ne: socket.userId },
+          },
+          {
+            $push: {
               Participants: {
                 userId: socket.userId,
                 name,
-                // email,
-                // role,
+                email: socket.user.email,
+                role: isCaller ? "admin" : "member",
               },
             },
           },
@@ -129,8 +132,6 @@ io.on("connection", async (socket) => {
         clearTimeout(deleteRoom[meetingId]);
         delete deleteRoom[meetingId];
       }
-
-      console.log("socket me store user", socket.user);
       // Atomic check and add to prevent duplicates
       const exists = roomUser[meetingId].some(
         (u) => u.userId === socket.userId,
@@ -150,7 +151,6 @@ io.on("connection", async (socket) => {
         adminUserId: meeting.Created_By,
       });
     } catch (error) {
-      console.error("Error in join-room:", error);
       socket.emit("error", "Failed to join room");
     }
   });
@@ -158,7 +158,6 @@ io.on("connection", async (socket) => {
   socket.on("send-message", async ({ meetingId, message }) => {
     try {
       if (!(await validateUser(socket))) return;
-      console.log("msg obj", message);
       const name = socket.name;
       const cleanText = DOMPurify.sanitize(message);
       io.to(meetingId).emit("receive-message", {

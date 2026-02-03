@@ -7,7 +7,6 @@ export const createMeeting = async (req, res) => {
   try {
     const userId = req.user.id;
     const userData = await User.findById(userId).select("-password");
-
     if (!userData) {
       return res
         .status(404)
@@ -15,12 +14,14 @@ export const createMeeting = async (req, res) => {
     }
 
     const { name, email } = userData;
+    const profilePic = userData.profilePic || "/images/defaultProfile.jpg";
+
     const meetingId = uuidv4();
 
     const meeting = new Meeting({
       Created_By: userId,
       MeetingId: meetingId,
-      Participants: { userId, name, email, role: "admin" },
+      Participants: { userId, name, email, profilePic, role: "admin" },
     });
 
     await meeting.save();
@@ -41,13 +42,18 @@ export const joinMeeting = async (req, res) => {
   const userId = req.user.id;
   const userData = await User.findById(userId).select("-password");
   const { name, email } = userData;
+  const profilePic = userData.profilePic || "/images/defaultProfile.jpg";
 
   const meeting = await Meeting.findOne({ MeetingId: meetingId });
   if (!meeting) return res.status(404).json({ message: "Meeting not found" });
 
   await Meeting.findOneAndUpdate(
     { MeetingId: meetingId },
-    { $addToSet: { Participants: { userId, name, email, role: "member" } } },
+    {
+      $addToSet: {
+        Participants: { userId, name, email, profilePic, role: "member" },
+      },
+    },
   );
   res.status(200).json({ message: "Joined successfully" });
 };

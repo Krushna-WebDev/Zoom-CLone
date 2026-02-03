@@ -5,6 +5,7 @@ import { UserContext } from "../../Context/Context";
 interface participant {
   email: string;
   name: string;
+  profilePic: string;
   role: "admin" | "member";
 }
 
@@ -37,7 +38,7 @@ const History = () => {
           },
         },
       );
-      // console.log(res.data);
+      console.log("data", res.data);
       setHistoryData(res.data);
     };
     fetchHistory();
@@ -158,8 +159,10 @@ const History = () => {
                     {meeting.Participants.slice(0, 5).map((p, idx) => (
                       <img
                         key={idx}
-                        /* Static Dummy Image */
-                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&auto=format&fit=crop&q=60"
+                        src={
+                          p.profilePic ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}`
+                        }
                         alt={p.name}
                         className="h-9 w-9 rounded-full border-2 border-white object-cover shadow-sm transition-transform hover:z-10 hover:-translate-y-1"
                       />

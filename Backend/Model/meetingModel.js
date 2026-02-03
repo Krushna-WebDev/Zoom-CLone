@@ -1,27 +1,22 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 import { string } from "zod";
 
-const MeetingSchema = new Schema({
-  Created_By: {
-    type: String,
+const ParticipantSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    name: String,
+    email: String,
+    profilePic:string,
+    role: { type: String, enum: ["admin", "member"], default: "member" },
   },
-  MeetingId: {
-    type: String,
-    required: true,
-  },
+  { _id: false }
+);
 
-  Participants: [
-    {
-      userId: String,
-      name: String,
-      email: String,
-      role: { type: String, enum: ["admin", "member"], default: "member" },
-    },
-  ],
-  Date: {
-    type: Date,
-    default: Date.now,
-  },
+const MeetingSchema = new mongoose.Schema({
+  Created_By: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  MeetingId: { type: String, required: true },
+  Participants: [ParticipantSchema],
+  Date: { type: Date, default: Date.now },
 });
 
 const Meeting = mongoose.model("Meeting", MeetingSchema);
