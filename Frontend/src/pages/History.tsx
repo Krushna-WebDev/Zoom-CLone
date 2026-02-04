@@ -16,7 +16,6 @@ interface historydata {
   Participants: participant[];
   _id: string;
 }
-
 const History = () => {
   const [HistoryData, setHistoryData] = useState<historydata[]>();
   const [HistoryModel, setHistoryModel] = useState<boolean>(false);
@@ -38,12 +37,11 @@ const History = () => {
           },
         },
       );
-      console.log("data", res.data);
+      console.log("history data", res.data);
       setHistoryData(res.data);
     };
     fetchHistory();
   }, [isLoading, token]);
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-raleway mt-20">
       {/* Header Section */}
@@ -159,10 +157,7 @@ const History = () => {
                     {meeting.Participants.slice(0, 5).map((p, idx) => (
                       <img
                         key={idx}
-                        src={
-                          p.profilePic ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}`
-                        }
+                        src={p.profilePic}
                         alt={p.name}
                         className="h-9 w-9 rounded-full border-2 border-white object-cover shadow-sm transition-transform hover:z-10 hover:-translate-y-1"
                       />
@@ -340,7 +335,7 @@ const History = () => {
                       <div className="flex items-center gap-3">
                         {/* Dummy Avatar */}
                         <img
-                          src={`https://ui-avatars.com/api/?name=${p.name}&background=random`}
+                          src={p.profilePic}
                           alt={p.name}
                           className="h-8 w-8 rounded-full"
                         />

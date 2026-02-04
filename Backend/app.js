@@ -21,7 +21,7 @@ app.use(
     credentials: true,
   }),
 );
-app.use("/images", express.static("public/images"));
+app.use("/images", express.static("/images"));
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -88,6 +88,8 @@ io.on("connection", async (socket) => {
       const userExists = meeting.Participants.some(
         (p) => p.userId.toString() === socket.userId,
       );
+      const profilePic =
+        socket.user?.profilePic || "/defaultProfile.jpg";
       if (!userExists) {
         await Meeting.updateOne(
           {
@@ -100,6 +102,7 @@ io.on("connection", async (socket) => {
                 userId: socket.userId,
                 name,
                 email: socket.user.email,
+                profilePic,
                 role: isCaller ? "admin" : "member",
               },
             },

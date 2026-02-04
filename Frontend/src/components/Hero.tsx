@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 import { toast } from "react-toastify";
+import { v4 as uuidv4 } from "uuid";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -15,12 +16,19 @@ const Hero = () => {
 
   // states
   const [inputCode, setinputCode] = useState("");
+
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
 
   const getMeetingcode = async () => {
+    const generatedId = uuidv4();
+    setMeetingCode(generatedId);
+
     try {
-      const res = await axios.get(
+      const res = await axios.post(
         "http://localhost:5000/api/v1/meeting/create-meeting",
+        {
+          meetingId: meetingcode,
+        },
         {
           withCredentials: true,
           headers: {
@@ -29,7 +37,7 @@ const Hero = () => {
         },
       );
       if (res.status === 201) {
-        setMeetingCode(res.data.meetingId);
+        // setMeetingCode(res.data.meetingId);
       }
     } catch (error: any) {
       const status = error?.response?.status;
@@ -53,7 +61,7 @@ const Hero = () => {
     }
   };
 
-  //optimize it 
+  //optimize it
 
   const joinAfterCode = async () => {
     if (!meetingcode) return;
@@ -69,6 +77,7 @@ const Hero = () => {
       );
 
       if (res.data.isJoinable) {
+        setJoinMeetingModal(false);
         navigate(`/chatarea/${meetingcode}`);
       } else {
         toast.error(
@@ -93,9 +102,8 @@ const Hero = () => {
         },
       );
 
-      console.log("res", res.data);
-
       if (res.data.isJoinable) {
+        setJoinMeetingModal(false);
         navigate(`/chatarea/${inputCode}`);
       } else {
         toast.error(
@@ -186,17 +194,16 @@ const Hero = () => {
           </div>
         </div>
         {JoinMeetingModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-all duration-300">
             {/* Modal Container */}
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
-              {/* Decorative Top Bar */}
-              <div className="h-2 w-full bg-gradient-to-r from-orange-400 to-orange-600"></div>
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-white/20 relative overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+              {/* Decorative Gradient Bar */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-orange-400 via-red-500 to-orange-600"></div>
 
               {/* Close Button */}
               <button
                 onClick={() => setJoinMeetingModal(false)}
-                className="absolute right-4 top-5 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200"
-                aria-label="Close modal"
+                className="absolute right-4 top-5 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors z-10"
               >
                 <svg
                   className="w-5 h-5"
@@ -207,19 +214,34 @@ const Hero = () => {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth="2.5"
+                    strokeWidth="2"
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
               </button>
 
-              <div className="p-8">
+              <div className="px-8 py-8">
                 {/* Header */}
                 <div className="text-center mb-8">
-                  <h1 className="text-3xl font-bold font-raleway text-gray-900">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
+                    <svg
+                      className="h-6 w-6 text-orange-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                     Video Meeting
                   </h1>
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-gray-500 text-sm mt-1">
                     Connect with your team instantly
                   </p>
                 </div>
@@ -227,11 +249,11 @@ const Hero = () => {
                 <div className="space-y-6">
                   {/* --- Section 1: Join with Code --- */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
-                      Have a meeting code?
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">
+                      Join Existing
                     </label>
                     <div className="relative flex items-center group">
-                      <div className="absolute left-3 text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                      <div className="absolute left-3 text-gray-400 group-focus-within:text-orange-500 transition-colors pointer-events-none">
                         <svg
                           className="w-5 h-5"
                           fill="none"
@@ -249,12 +271,12 @@ const Hero = () => {
                       <input
                         type="text"
                         onChange={(e) => setinputCode(e.target.value)}
-                        className="w-full pl-10 pr-24 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                        placeholder="abc-def-ghi"
+                        className="w-full pl-10 pr-20 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
+                        placeholder="Enter code"
                       />
                       <button
                         onClick={joinMeeting}
-                        className="absolute right-1.5 top-1.5 bottom-1.5 bg-gray-900 hover:bg-orange-600 text-white px-4 rounded-lg font-medium text-sm transition-colors duration-200"
+                        className="absolute right-1.5 top-1.5 bottom-1.5 bg-gray-900 hover:bg-orange-600 text-white px-4 rounded-lg font-medium text-sm transition-colors shadow-sm"
                       >
                         Join
                       </button>
@@ -262,79 +284,66 @@ const Hero = () => {
                   </div>
 
                   {/* --- Separator --- */}
-                  <div className="relative flex py-2 items-center">
+                  <div className="relative flex py-1 items-center">
                     <div className="flex-grow border-t border-gray-200"></div>
-                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase tracking-wider">
-                      OR
+                    <span className="flex-shrink-0 mx-4 text-gray-300 text-[10px] font-bold uppercase tracking-widest">
+                      OR START NEW
                     </span>
                     <div className="flex-grow border-t border-gray-200"></div>
                   </div>
 
-                  {/* --- Section 2: Create Code --- */}
+                  {/* --- Section 2: Create New Meeting --- */}
                   <div>
+                    {/* NEW: Optional Meeting Name Input */}
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        // onChange={(e) => setMeetingName(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-sm text-gray-700 placeholder-gray-400"
+                        placeholder="Meeting Name (Optional)"
+                      />
+                    </div>
+
                     <button
                       onClick={getMeetingcode}
-                      className="group w-full flex items-center justify-center gap-3 bg-orange-50 hover:bg-orange-100 border border-orange-100 hover:border-orange-200 text-orange-700 font-semibold px-6 py-4 rounded-xl transition-all duration-200 active:scale-[0.98]"
+                      className="group w-full flex items-center justify-center gap-3 bg-gradient-to-b from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border border-orange-200 text-orange-800 font-semibold px-6 py-3 rounded-xl transition-all duration-200 active:scale-[0.98]"
                     >
-                      <div className="p-2 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                        <svg
-                          className="w-5 h-5 text-orange-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
+                      <svg
+                        className="w-5 h-5 text-orange-600 group-hover:scale-110 transition-transform"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
                       Create New Meeting
                     </button>
                   </div>
 
-                  {/* --- Section 3: Display Generated Code (Conditional) --- */}
+                  {/* --- Section 3: Generated Code Result --- */}
                   {meetingcode && (
-                    <div className="animate-in slide-in-from-top-4 fade-in duration-300">
-                      <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-                        <div className="flex justify-between items-center mb-3">
-                          <p className="text-sm font-medium text-green-800">
-                            Success! Here is your code:
+                    <div className="animate-in slide-in-from-top-2 fade-in duration-300">
+                      <div className="bg-green-50/80 border border-green-100 rounded-xl p-4 mt-2">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-xs font-bold text-green-700 uppercase tracking-wide">
+                            Meeting Created!
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-green-200 border-dashed">
-                          <span className="flex-1 font-mono text-lg font-bold text-gray-800 tracking-wider text-center">
+                        <div className="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-green-200 border-dashed shadow-sm">
+                          <span className="flex-1 font-mono text-lg font-bold text-gray-800 tracking-wider text-center select-all">
                             {meetingcode}
                           </span>
 
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() =>
-                                navigator.clipboard.writeText(meetingcode)
-                              }
-                              className="p-2 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
-                              title="Copy to clipboard"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                />
-                              </svg>
-                            </button>
+                          <div className="flex gap-1 border-l border-gray-100 pl-1">
                             <button
                               onClick={joinAfterCode}
-                              className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+                              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors whitespace-nowrap"
                             >
                               Enter Room
                             </button>

@@ -3,9 +3,13 @@ import Meeting from "../Model/meetingModel.js";
 import User from "../Model/userModel.js";
 import { roomUser } from "../config/roomManager.js";
 
+
 export const createMeeting = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log("body",req.body.meetingId)
+    const meetingId = req.body
+    return ;
     const userData = await User.findById(userId).select("-password");
     if (!userData) {
       return res
@@ -14,9 +18,7 @@ export const createMeeting = async (req, res) => {
     }
 
     const { name, email } = userData;
-    const profilePic = userData.profilePic || "/images/defaultProfile.jpg";
-
-    const meetingId = uuidv4();
+    const profilePic = userData.profilePic || "/defaultProfile.jpg";
 
     const meeting = new Meeting({
       Created_By: userId,
@@ -42,7 +44,7 @@ export const joinMeeting = async (req, res) => {
   const userId = req.user.id;
   const userData = await User.findById(userId).select("-password");
   const { name, email } = userData;
-  const profilePic = userData.profilePic || "/images/defaultProfile.jpg";
+  const profilePic = userData.profilePic || "/defaultProfile.jpg";
 
   const meeting = await Meeting.findOne({ MeetingId: meetingId });
   if (!meeting) return res.status(404).json({ message: "Meeting not found" });
