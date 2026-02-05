@@ -3,18 +3,23 @@ import { string } from "zod";
 
 const ParticipantSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: String,
     email: String,
-    profilePic:string,
+    profilePic: string,
     role: { type: String, enum: ["admin", "member"], default: "member" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const MeetingSchema = new mongoose.Schema({
   Created_By: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   MeetingId: { type: String, required: true },
+  MeetingName: { type: string, default: "Untitled Meeting" },
   Participants: [ParticipantSchema],
   Date: { type: Date, default: Date.now },
 });

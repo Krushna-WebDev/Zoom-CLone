@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
@@ -16,17 +16,20 @@ const Hero = () => {
 
   // states
   const [inputCode, setinputCode] = useState("");
-
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
+  const [meetingName , setMeetingName] = useState<string | null>(null)
 
-  const getMeetingcode = async () => {
+  const GenerateCode = async () => {
     const generatedId = uuidv4();
     setMeetingCode(generatedId);
+  };
 
+  const creataMeeting = async () => {
     try {
       const res = await axios.post(
         "http://localhost:5000/api/v1/meeting/create-meeting",
         {
+          meetingName,
           meetingId: meetingcode,
         },
         {
@@ -37,7 +40,9 @@ const Hero = () => {
         },
       );
       if (res.status === 201) {
-        // setMeetingCode(res.data.meetingId);
+        setJoinMeetingModal(false);
+        navigate(`/chatarea/${meetingcode}`);
+        setMeetingName(null)
       }
     } catch (error: any) {
       const status = error?.response?.status;
@@ -63,32 +68,31 @@ const Hero = () => {
 
   //optimize it
 
-  const joinAfterCode = async () => {
-    if (!meetingcode) return;
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/api/v1/meeting/check-room/${meetingcode}`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+  // const joinAfterCode = async () => {
+  //   if (!meetingcode) return;
+  //   try {
+  //     const res = await axios.get(
+  //       `http://localhost:5000/api/v1/meeting/check-room/${meetingcode}`,
+  //       {
+  //         withCredentials: true,
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
 
-      if (res.data.isJoinable) {
-        setJoinMeetingModal(false);
-        navigate(`/chatarea/${meetingcode}`);
-      } else {
-        toast.error(
-          `Room is full (${res.data.currentUsers}/${res.data.maxUsers} users)`,
-        );
-      }
-    } catch (error: any) {
-      toast.error("Error checking room. Please try again.");
-      console.error(error);
-    }
-  };
+  //     if (res.data.isJoinable) {
+  //     } else {
+  //       toast.error(
+  //         `Room is full (${res.data.currentUsers}/${res.data.maxUsers} users)`,
+  //       );
+  //     }
+  //   } catch (error: any) {
+  //     toast.error("Error checking room. Please try again.");
+  //     console.error(error);
+  //   }
+  // };
+
   const joinMeeting = async () => {
     if (!inputCode) return;
     try {
@@ -115,7 +119,7 @@ const Hero = () => {
       console.error(error);
     }
   };
-
+console.log("meeting name ", meetingName)
   return (
     <>
       <div
@@ -298,14 +302,14 @@ const Hero = () => {
                     <div className="mb-3">
                       <input
                         type="text"
-                        // onChange={(e) => setMeetingName(e.target.value)}
+                        onChange={(e) => setMeetingName(e.target.value)}
                         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-sm text-gray-700 placeholder-gray-400"
                         placeholder="Meeting Name (Optional)"
                       />
                     </div>
 
                     <button
-                      onClick={getMeetingcode}
+                      onClick={GenerateCode}
                       className="group w-full flex items-center justify-center gap-3 bg-gradient-to-b from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border border-orange-200 text-orange-800 font-semibold px-6 py-3 rounded-xl transition-all duration-200 active:scale-[0.98]"
                     >
                       <svg
@@ -342,7 +346,7 @@ const Hero = () => {
 
                           <div className="flex gap-1 border-l border-gray-100 pl-1">
                             <button
-                              onClick={joinAfterCode}
+                              onClick={creataMeeting}
                               className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-md shadow-sm transition-colors whitespace-nowrap"
                             >
                               Enter Room

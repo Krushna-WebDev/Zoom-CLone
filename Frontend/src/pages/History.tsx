@@ -13,6 +13,7 @@ interface historydata {
   Created_By: string;
   Date: string;
   MeetingId: string;
+  MeetingName: string;
   Participants: participant[];
   _id: string;
 }
@@ -68,7 +69,6 @@ const History = () => {
             hour12: true,
           });
           const admin = meeting.Participants.filter((p) => p.role === "admin");
-          console.log(meeting.Participants);
           return (
             <div
               key={meeting._id}
@@ -99,7 +99,7 @@ const History = () => {
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
                     {/* todo:-tittle set krna hai  */}
-                    {/* {meeting.title} */} Unknown Meeting
+                    {meeting.MeetingName}
                   </h3>
                   <div className="mt-1 flex items-center text-sm text-gray-500">
                     <svg

@@ -3,13 +3,10 @@ import Meeting from "../Model/meetingModel.js";
 import User from "../Model/userModel.js";
 import { roomUser } from "../config/roomManager.js";
 
-
 export const createMeeting = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log("body",req.body.meetingId)
-    const meetingId = req.body
-    return ;
+    const { meetingId, meetingName } = req.body;
     const userData = await User.findById(userId).select("-password");
     if (!userData) {
       return res
@@ -20,18 +17,20 @@ export const createMeeting = async (req, res) => {
     const { name, email } = userData;
     const profilePic = userData.profilePic || "/defaultProfile.jpg";
 
+    const title = meetingName ? meetingName : "Untitled Meeting";
+
     const meeting = new Meeting({
       Created_By: userId,
       MeetingId: meetingId,
+      MeetingName: title,
       Participants: { userId, name, email, profilePic, role: "admin" },
     });
-
+    console.log("meeting", meeting);
     await meeting.save();
 
     res.status(201).json({
       success: true,
       message: "Meeting created successfully",
-      meetingId: meetingId,
     });
   } catch (error) {
     console.error(error);
@@ -85,7 +84,6 @@ export const checkRoomCapacity = async (req, res) => {
     }
     const currentUsers = roomUser[meetingId] ? roomUser[meetingId].length : 0;
     const isJoinable = currentUsers < 4;
-    console.log("joinable", isJoinable);
     res.status(200).json({ isJoinable, currentUsers, maxUsers: 4 });
   } catch (error) {
     console.error(error);

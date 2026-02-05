@@ -53,7 +53,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
 
     socket.emit("join-room", {
       meetingId,
-      userId: user._id,
       name: user.name,
     });
 
@@ -62,7 +61,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     });
 
     socket.on("receive-message", (msg: ChatMsg) => {
-      console.log("msg OBj",msg)
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("userLeft", (msg: leaveMsg) => {
@@ -70,7 +68,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     });
     socket.on("Connected-Users", (data) => {
       setIsCaller(data.adminUserId);
-      console.log("with profilepic", data.users);
       setparticipants(data.users);
     });
 
@@ -222,6 +219,12 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
             ref={inputref}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
             placeholder="Type a message..."
             className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
           />
@@ -248,7 +251,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
               <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
             </svg>
           </button>
-          {/* <button onClick={LeaveRoom}>leave</button> */}
         </div>
       </div>
     </div>
