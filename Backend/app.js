@@ -88,8 +88,7 @@ io.on("connection", async (socket) => {
       const userExists = meeting.Participants.some(
         (p) => p.userId.toString() === socket.userId,
       );
-      const profilePic =
-        socket.user?.profilePic || "/defaultProfile.jpg";
+      const profilePic = socket.user?.profilePic || "/defaultProfile.jpg";
       if (!userExists) {
         await Meeting.updateOne(
           {
@@ -161,7 +160,7 @@ io.on("connection", async (socket) => {
   socket.on("send-message", async ({ meetingId, message }) => {
     try {
       if (!(await validateUser(socket))) return;
-      const name = socket.name;
+      const { name, userId } = socket;
       const cleanText = DOMPurify.sanitize(message);
       io.to(meetingId).emit("receive-message", {
         type: "Msg",
@@ -170,6 +169,19 @@ io.on("connection", async (socket) => {
         userId: socket.userId,
         Time: new Date(),
       });
+
+      const meeting = await Meeting.findOneAndUpdate(
+        { MeetingId: meetingId },
+        {
+          $push: {
+            Messages: {
+              text: cleanText,
+              senderId: userId,
+              senderName: name,
+            },
+          },
+        },
+      );
     } catch (error) {
       console.error("Error in send-message:", error);
     }

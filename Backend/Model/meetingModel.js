@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { string } from "zod";
 
 const ParticipantSchema = new mongoose.Schema(
   {
@@ -10,17 +9,25 @@ const ParticipantSchema = new mongoose.Schema(
     },
     name: String,
     email: String,
-    profilePic: string,
+    profilePic: String,
     role: { type: String, enum: ["admin", "member"], default: "member" },
   },
   { _id: false },
 );
 
+const MessageSchema = new mongoose.Schema({
+  text: String,
+  senderId: String,
+  senderName: String,
+  time: { type: Date, default: Date.now },
+});
+
 const MeetingSchema = new mongoose.Schema({
   Created_By: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   MeetingId: { type: String, required: true },
-  MeetingName: { type: string, default: "Untitled Meeting" },
+  MeetingName: { type: String, default: "Untitled Meeting" },
   Participants: [ParticipantSchema],
+  Messages: { type: [MessageSchema], default: [] },
   Date: { type: Date, default: Date.now },
 });
 
