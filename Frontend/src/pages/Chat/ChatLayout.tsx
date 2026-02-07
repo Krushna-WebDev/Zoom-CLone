@@ -18,7 +18,6 @@ const ChatLayout = () => {
   const [mode, setMode] = useState<"chat" | "video">("chat");
 
   const navigate = useNavigate();
-  console.log("token in layout", token);
   useEffect(() => {
     if (!isLoading && !token) {
       navigate("/notfound");

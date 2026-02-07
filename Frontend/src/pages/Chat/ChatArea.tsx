@@ -32,14 +32,21 @@ interface ChatMsg {
   Time: string;
 }
 
+interface recentMsfinterface {
+  senderId: string;
+  senderName: string;
+  text: string;
+  time: string;
+}
+
 type Message = joinMsg | leaveMsg | ChatMsg;
 const ChatArea = ({ setparticipants }: ChatAreaProps) => {
   const navigate = useNavigate();
   const { meetingId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [Newtext, setNewtext] = useState("");
   const inputref = useRef<HTMLInputElement | null>(null);
-  const { user, setIsCaller } = useContext(UserContext)!;
+  const { user, setIsCaller, token } = useContext(UserContext)!;
   const socket = useContext(SocketContext)!;
 
   useEffect(() => {
@@ -100,16 +107,42 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
 
   const sendMessage = () => {
     if (!socket) return;
-    const text = newMessage.trim();
+    const text = Newtext.trim();
     if (!text) return;
     socket.emit("send-message", {
       meetingId,
-      message: newMessage,
+      message: Newtext,
     });
-    setNewMessage("");
+    setNewtext("");
     inputref.current?.focus();
   };
+  useEffect(() => {
+    const fetchRecent = async () => {
+      const res = await axios.get(
+        `http://localhost:5000/api/v1/meeting/fetchRecentMsg/${meetingId}`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const mapped: ChatMsg[] = (res.data || []).map(
+        (m: recentMsfinterface) => ({
+          type: "Msg",
+          user: m.senderName,
+          text: m.text,
+          userId: m.senderId,
+          Time: m.time,
+        }),
+      );
+      setMessages(mapped);
+    };
 
+    if (meetingId && token) {
+      fetchRecent();
+    }
+  }, [meetingId, token]);
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -178,7 +211,10 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           } else if (msg.type === "Msg") {
             //  (ME)
             if (msg.userId === user?._id) {
-              const msgTime = new Date(msg.Time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const msgTime = new Date(msg.Time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
               return (
                 <div key={`msg-${idx}`} className="flex justify-end mb-4">
                   <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tr-sm bg-blue-600 text-white shadow-md">
@@ -194,7 +230,10 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
             }
             // others
             else {
-              const msgTime = new Date(msg.Time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const msgTime = new Date(msg.Time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
               return (
                 <div key={`msg-${idx}`} className="flex justify-start mb-4">
                   <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800 shadow-sm">
@@ -217,8 +256,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           <input
             type="text"
             ref={inputref}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            value={Newtext}
+            onChange={(e) => setNewtext(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -231,15 +270,15 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           <button
             onClick={sendMessage}
             type="button"
-            disabled={!newMessage.trim()}
+            disabled={!Newtext.trim()}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 active:scale-95 flex items-center gap-2
              ${
-               newMessage.trim()
+               Newtext.trim()
                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                  : "bg-blue-200 text-white/60 cursor-not-allowed"
              }`}
           >
-            <span className={`${newMessage.trim() ? "" : "opacity-70"}`}>
+            <span className={`${Newtext.trim() ? "" : "opacity-70"}`}>
               Send
             </span>
             <svg

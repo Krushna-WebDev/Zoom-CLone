@@ -22,7 +22,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       newSocket.disconnect();
     };
   }, [token]);
-  console.log("token from f", token);
   return (
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );

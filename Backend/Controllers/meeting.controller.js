@@ -25,7 +25,6 @@ export const createMeeting = async (req, res) => {
       MeetingName: title,
       Participants: { userId, name, email, profilePic, role: "admin" },
     });
-    console.log("meeting", meeting);
     await meeting.save();
 
     res.status(201).json({
@@ -62,7 +61,6 @@ export const joinMeeting = async (req, res) => {
 export const getParticipants = async (req, res) => {
   try {
     const { meetingId } = req.params;
-    console.log("from backend", meetingId);
 
     const meeting = await Meeting.findOne({ MeetingId: meetingId }).select(
       "Participants",
@@ -100,5 +98,21 @@ export const MeetingHistory = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const fetchRecentMsg = async (req, res) => {
+  try {
+    const { meetingId } = req.params;
+    const meeting = await Meeting.findOne(
+      { MeetingId: meetingId },
+      { Messages: { $slice: -15 } },
+    );
+    const messages = (meeting?.Messages || []).sort(
+      (a, b) => new Date(a.time) - new Date(b.time),
+    );
+    res.status(201).json(messages)
+  } catch (error) {
+    console.log("error in backend fetching recent ", error);
   }
 };
