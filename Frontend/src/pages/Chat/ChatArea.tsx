@@ -127,16 +127,7 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           },
         },
       );
-      const mapped: ChatMsg[] = (res.data || []).map(
-        (m: recentMsfinterface) => ({
-          type: "Msg",
-          user: m.senderName,
-          text: m.text,
-          userId: m.senderId,
-          Time: m.time,
-        }),
-      );
-      setMessages(mapped);
+      setMessages(res.data);
     };
 
     if (meetingId && token) {

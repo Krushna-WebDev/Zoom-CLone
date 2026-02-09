@@ -22,7 +22,7 @@ const Navbar = () => {
       console.log("Error during logout", error);
     }
   };
-  
+
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-md border-b border-white/20 shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -111,12 +111,13 @@ const Navbar = () => {
                     Profile
                   </button>
 
-                  <button
+                  <Link
+                    to="/settings"
                     onClick={() => setopen(false)}
                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                   >
                     Settings
-                  </button>
+                  </Link>
 
                   <Link
                     to="/history"

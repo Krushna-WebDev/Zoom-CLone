@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import ChatLayout from "./pages/Chat/ChatLayout";
 import NotFound404 from "./pages/NotFound404";
 import History from "./pages/History";
+import { Setting } from "./pages/Setting";
 
 const App = () => {
   return (
@@ -21,7 +22,7 @@ const App = () => {
 
 function Layout() {
   const location = useLocation();
-  const showNavbar = ["/", "/login", "/signup","/history"].includes(location.pathname);
+  const showNavbar = ["/", "/login", "/signup","/history","/settings"].includes(location.pathname);
   const [loginModel, setLoginModel] = useState(false);
   return (
     <div>
@@ -38,6 +39,7 @@ function Layout() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/history" element={<History />} />
+        <Route path="/settings" element={<Setting />} />
         <Route path="/notfound" element={<NotFound404 />} />
         <Route path="/chatarea/:meetingId" element={<ChatLayout />} />
         

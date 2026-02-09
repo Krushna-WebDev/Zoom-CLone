@@ -111,7 +111,19 @@ export const fetchRecentMsg = async (req, res) => {
     const messages = (meeting?.Messages || []).sort(
       (a, b) => new Date(a.time) - new Date(b.time),
     );
-    res.status(201).json(messages)
+
+    console.log("msg", messages);
+    const mapped = messages.map((m) => {
+      return {
+        type: "Msg",
+        user: m.senderName,
+        text: m.text,
+        userId: m.senderId,
+        Time: m.time,
+      };
+    });
+    console.log("m data", mapped);
+    res.status(201).json(mapped);
   } catch (error) {
     console.log("error in backend fetching recent ", error);
   }

@@ -17,7 +17,7 @@ const Hero = () => {
   // states
   const [inputCode, setinputCode] = useState("");
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
-  const [meetingName , setMeetingName] = useState<string | null>(null)
+  const [meetingName, setMeetingName] = useState<string | null>(null);
 
   const GenerateCode = async () => {
     const generatedId = uuidv4();
@@ -42,7 +42,7 @@ const Hero = () => {
       if (res.status === 201) {
         setJoinMeetingModal(false);
         navigate(`/chatarea/${meetingcode}`);
-        setMeetingName(null)
+        setMeetingName(null);
       }
     } catch (error: any) {
       const status = error?.response?.status;
@@ -65,33 +65,6 @@ const Hero = () => {
       }
     }
   };
-
-  //optimize it
-
-  // const joinAfterCode = async () => {
-  //   if (!meetingcode) return;
-  //   try {
-  //     const res = await axios.get(
-  //       `http://localhost:5000/api/v1/meeting/check-room/${meetingcode}`,
-  //       {
-  //         withCredentials: true,
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-
-  //     if (res.data.isJoinable) {
-  //     } else {
-  //       toast.error(
-  //         `Room is full (${res.data.currentUsers}/${res.data.maxUsers} users)`,
-  //       );
-  //     }
-  //   } catch (error: any) {
-  //     toast.error("Error checking room. Please try again.");
-  //     console.error(error);
-  //   }
-  // };
 
   const joinMeeting = async () => {
     if (!inputCode) return;
@@ -119,7 +92,7 @@ const Hero = () => {
       console.error(error);
     }
   };
-console.log("meeting name ", meetingName)
+  console.log("meeting name ", meetingName);
   return (
     <>
       <div
@@ -298,16 +271,6 @@ console.log("meeting name ", meetingName)
 
                   {/* --- Section 2: Create New Meeting --- */}
                   <div>
-                    {/* NEW: Optional Meeting Name Input */}
-                    <div className="mb-3">
-                      <input
-                        type="text"
-                        onChange={(e) => setMeetingName(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-sm text-gray-700 placeholder-gray-400"
-                        placeholder="Meeting Name (Optional)"
-                      />
-                    </div>
-
                     <button
                       onClick={GenerateCode}
                       className="group w-full flex items-center justify-center gap-3 bg-gradient-to-b from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border border-orange-200 text-orange-800 font-semibold px-6 py-3 rounded-xl transition-all duration-200 active:scale-[0.98]"
@@ -333,6 +296,15 @@ console.log("meeting name ", meetingName)
                   {meetingcode && (
                     <div className="animate-in slide-in-from-top-2 fade-in duration-300">
                       <div className="bg-green-50/80 border border-green-100 rounded-xl p-4 mt-2">
+                        {/* NEW: Optional Meeting Name Input */}
+                        <div className="mb-3">
+                          <input
+                            type="text"
+                            onChange={(e) => setMeetingName(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-sm text-gray-700 placeholder-gray-400"
+                            placeholder="Meeting Name (Optional)"
+                          />
+                        </div>
                         <div className="flex justify-between items-center mb-2">
                           <p className="text-xs font-bold text-green-700 uppercase tracking-wide">
                             Meeting Created!

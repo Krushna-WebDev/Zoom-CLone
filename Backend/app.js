@@ -170,7 +170,7 @@ io.on("connection", async (socket) => {
         Time: new Date(),
       });
 
-      const meeting = await Meeting.findOneAndUpdate(
+     await Meeting.findOneAndUpdate(
         { MeetingId: meetingId },
         {
           $push: {
