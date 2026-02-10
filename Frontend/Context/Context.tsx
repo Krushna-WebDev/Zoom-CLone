@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   profilePic: string;
+  googleId:string
 }
 
 interface UserContextInterface {
