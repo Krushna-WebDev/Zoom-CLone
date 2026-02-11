@@ -48,19 +48,18 @@ export const login = async (req, res) => {
   }
 
   const Match = await bcrypt.compare(password, FoundUser.password);
-  console.log(Match);
   if (!Match) {
     return res.status(401).json({ message: "enter correct password" });
   }
   const accessToken = jwt.sign(
     { id: FoundUser._id },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "15m" },
   );
   const refreshToken = jwt.sign(
     { id: FoundUser._id },
     process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: "1d" }
+    { expiresIn: "1d" },
   );
 
   res.cookie("jwt", refreshToken, {
@@ -83,14 +82,13 @@ export const refresh = (req, res) => {
     const accessToken = jwt.sign(
       { id: user.id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
     res.json({ accessToken });
   });
 };
 
 export const logout = async (req, res) => {
-  console.log(req.cookies);
   res.clearCookie("jwt", {
     httpOnly: true,
     // secure: true,
@@ -124,7 +122,7 @@ export const GoogleLogin = async (req, res) => {
         redirect_uri: "http://localhost:5000/api/v1/auth/google/callback",
         grant_type: "authorization_code",
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
     );
 
     const { access_token } = tokenResponse.data;
@@ -132,11 +130,10 @@ export const GoogleLogin = async (req, res) => {
     // 2) Fetch user profile from Google (more reliable than just decoding id_token)
     const userInfoRes = await axios.get(
       "https://www.googleapis.com/oauth2/v3/userinfo",
-      { headers: { Authorization: `Bearer ${access_token}` } }
+      { headers: { Authorization: `Bearer ${access_token}` } },
     );
 
     const gUser = userInfoRes.data;
-    console.log("gUser",gUser)
     // 3) Find or create user in DB
     let user = await User.findOne({ googleId: gUser.sub });
 
@@ -163,13 +160,13 @@ export const GoogleLogin = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     const refreshToken = jwt.sign(
       { id: user._id, email: user.email },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     // 5) Set refresh token in httpOnly cookie
@@ -190,5 +187,32 @@ export const GoogleLogin = async (req, res) => {
   } catch (err) {
     console.error("Google login error:", err?.response?.data || err.message);
     res.status(500).send("Error during Google login");
+  }
+};
+
+export const verifyPassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { curPassword } = req.body;
+    if (!curPassword) {
+      return res.status(400).json({ message: "current password required" });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    if (!user.password) {
+      return res
+        .status(400)
+        .json({ message: "password managed by google" });
+    }
+    const isMatch = await bcrypt.compare(curPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "invalid password" });
+    }
+    return res.status(200).json({ message: "password verified" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "server error" });
   }
 };

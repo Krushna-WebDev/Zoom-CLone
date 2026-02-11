@@ -1,10 +1,28 @@
 import React, { useContext, useState } from "react";
 import { UserContext } from "../../Context/Context";
+import axios from "axios";
 
 export const Setting = () => {
-  const { user } = useContext(UserContext)!;
-  const [passwordModel, setPasswordModel] = useState(true);
+  const { user, token } = useContext(UserContext)!;
+  const [passwordModel, setPasswordModel] = useState(false);
+  const [curPassword, setCurPassword] = useState("");
+  const [error, setError] = useState("");
 
+  const verifyPass = async () => {
+    const res = await axios.post(
+      "http://localhost:5000/api/v1/auth/verifyPassword",
+      {
+        curPassword,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+  };
+  console.log(curPassword);
   return (
     <div className="min-h-screen bg-gray-50 mt-16 font-raleway p-6">
       <div className="mx-auto max-w-5xl">
@@ -123,7 +141,10 @@ export const Setting = () => {
                   <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
                     Security
                   </label>
-                  <button className="w-full sm:w-auto text-sm bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-4 py-2.5 rounded-xl font-semibold transition-colors">
+                  <button
+                    onClick={() => setPasswordModel(true)}
+                    className="w-full sm:w-auto text-sm bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-4 py-2.5 rounded-xl font-semibold transition-colors"
+                  >
                     Change Password
                   </button>
                 </div>
@@ -173,8 +194,103 @@ export const Setting = () => {
         </div>
         {passwordModel && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-            <div className="relative w-full max-w-md bg-white rounded shadow-2xl overflow-hidden p-4">
-              <h1>Change Password</h1>
+            {/* Backdrop Click to Close */}
+            <div
+              className="absolute inset-0"
+              onClick={() => setPasswordModel(false)}
+            ></div>
+
+            {/* Modal Card */}
+            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">
+                    Change Password
+                  </h1>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Secure your account
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPasswordModel(false)}
+                  className="rounded-full p-2 text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form Body */}
+              <div className="p-6 space-y-5">
+                {/* Current Password */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    onChange={(e) => setCurPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                  />
+                  {error && <p className="text-sm text-red-500 ">Enter valid password</p>}
+                </div>
+
+                {/* New Password */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
+                    Must be at least 8 characters long.
+                  </p>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <button
+                  onClick={() => setPasswordModel(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={verifyPass}
+                  className="px-6 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-orange-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  Update Password
+                </button>
+              </div>
             </div>
           </div>
         )}

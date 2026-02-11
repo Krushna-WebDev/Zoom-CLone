@@ -10,8 +10,7 @@ export const verifyToken = (req, res, next) => {
   
   const token = authHead.split(" ")[1];
   try {
-    const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    console.log(decode)
+    const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
     req.user = decode;
 
     next();
