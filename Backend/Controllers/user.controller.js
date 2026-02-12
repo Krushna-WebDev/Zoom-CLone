@@ -202,9 +202,7 @@ export const verifyPassword = async (req, res) => {
       return res.status(404).json({ message: "user not found" });
     }
     if (!user.password) {
-      return res
-        .status(400)
-        .json({ message: "password managed by google" });
+      return res.status(400).json({ message: "password managed by google" });
     }
     const isMatch = await bcrypt.compare(curPassword, user.password);
     if (!isMatch) {
@@ -215,4 +213,19 @@ export const verifyPassword = async (req, res) => {
     console.log(error);
     return res.status(500).json({ message: "server error" });
   }
+};
+
+export const changePass = async (req, res) => {
+  const userId = req.user.id;
+  const { newPassword } = req.body;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "user not found" });
+  }
+  if (!user.password) {
+    return res.status(400).json({ message: "password managed by google" });
+  }
+
+  const newHashedPass = await bcrypt.hash(newPassword, 10);
+  await User.updateOne()
 };

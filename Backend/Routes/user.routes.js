@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  changePass,
   cookieCheck,
   getuser,
   GoogleLogin,
@@ -17,6 +18,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.get("/getuser", verifyToken, getuser);
 router.post("/verifyPassword", verifyToken, verifyPassword);
+router.post("/changepass", verifyToken, changePass);
 router.get("/check", cookieCheck);
 router.get("/refresh", refresh);
 router.get("/google/callback", GoogleLogin);

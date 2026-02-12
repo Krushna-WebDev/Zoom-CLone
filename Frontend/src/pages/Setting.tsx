@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { UserContext } from "../../Context/Context";
 import axios from "axios";
 
@@ -6,23 +6,62 @@ export const Setting = () => {
   const { user, token } = useContext(UserContext)!;
   const [passwordModel, setPasswordModel] = useState(false);
   const [curPassword, setCurPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
+  const errorTimerRef = useRef<number | null>(null);
+  const [isVerifed, setIsVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
 
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) {
+        clearTimeout(errorTimerRef.current);
+      }
+    };
+  }, []);
   const verifyPass = async () => {
-    const res = await axios.post(
-      "http://localhost:5000/api/v1/auth/verifyPassword",
-      {
-        curPassword,
-      },
-      {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/auth/verifyPassword",
+        {
+          curPassword,
         },
-      },
-    );
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (res.status === 200) {
+        setError(false);
+        setIsVerified(true);
+        if (errorTimerRef.current) {
+          clearTimeout(errorTimerRef.current);
+          errorTimerRef.current = null;
+        }
+      }
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        setError(true);
+        setIsVerified(false);
+        if (errorTimerRef.current) {
+          clearTimeout(errorTimerRef.current);
+        }
+        errorTimerRef.current = window.setTimeout(() => {
+          setError(false);
+          errorTimerRef.current = null;
+        }, 2500);
+      } else {
+        console.error("verifyPass error", err);
+      }
+    }
   };
-  console.log(curPassword);
+
+  const changePassword = async () => {
+
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 mt-16 font-raleway p-6">
       <div className="mx-auto max-w-5xl">
@@ -232,7 +271,6 @@ export const Setting = () => {
                 </button>
               </div>
 
-              {/* Form Body */}
               <div className="p-6 space-y-5">
                 {/* Current Password */}
                 <div>
@@ -245,37 +283,44 @@ export const Setting = () => {
                     placeholder="••••••••"
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
                   />
-                  {error && <p className="text-sm text-red-500 ">Enter valid password</p>}
+                  {error && (
+                    <p className="text-sm text-red-500 ">
+                      Enter valid password
+                    </p>
+                  )}
                 </div>
 
-                {/* New Password */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
-                    Must be at least 8 characters long.
-                  </p>
-                </div>
+                <div className={`${isVerifed ? "" : "hidden"}`}>
+                  {/* New Password */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
+                      Must be at least 8 characters long.
+                    </p>
+                  </div>
 
-                {/* Confirm Password */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
-                  />
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      onChange={(e) => setConfirmPass(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                    />
+                  </div>
                 </div>
               </div>
-
               {/* Footer Actions */}
               <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <button
@@ -286,9 +331,9 @@ export const Setting = () => {
                 </button>
                 <button
                   onClick={verifyPass}
-                  className="px-6 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-orange-600 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                  className={`px-6 py-2 text-sm font-semibold text-white ${isVerifed ? "bg-gray-900 hover:bg-orange-600" : "bg-green-700 hover:bg-green-600"} rounded-lg shadow-md hover:shadow-lg transition-all duration-200 `}
                 >
-                  Update Password
+                  {isVerifed ? "Update Password" : "Check Password"}
                 </button>
               </div>
             </div>
