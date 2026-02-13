@@ -37,19 +37,33 @@ const Navbar = () => {
           </h1>
         </Link>
 
-        {/* fix this navigation */}
         <nav className="flex gap-4 sm:gap-6">
-          {["Home", "About", "Features"].map((page) => (
-            <Link
-              key={page}
-              to={`/${page.toLowerCase()}`}
-              className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
-                         before:absolute before:bottom-0 before:left-0 before:w-0 before:h-0.5 before:bg-orange-500
-                         before:transition-all hover:before:w-full"
-            >
-              {page}
-            </Link>
-          ))}
+          <Link
+            to="/"
+            className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
+               before:absolute before:bottom-0 before:left-0 before:w-0 before:h-0.5 before:bg-orange-500
+               before:transition-all hover:before:w-full"
+          >
+            Home
+          </Link>
+
+          <Link
+            to="/about"
+            className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
+               before:absolute before:bottom-0 before:left-0 before:w-0 before:h-0.5 before:bg-orange-500
+               before:transition-all hover:before:w-full"
+          >
+            About
+          </Link>
+
+          <Link
+            to="/features"
+            className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
+               before:absolute before:bottom-0 before:left-0 before:w-0 before:h-0.5 before:bg-orange-500
+               before:transition-all hover:before:w-full"
+          >
+            Features
+          </Link>
         </nav>
 
         {user ? (

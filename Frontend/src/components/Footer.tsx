@@ -1,173 +1,87 @@
 import { Github, Linkedin, Twitter } from "lucide-react";
+
 const Footer = () => {
   return (
-    <footer className="py-16 border-t border-border">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="md:col-span-1">
-            <a href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+    <footer className="py-16 bg-white border-t border-gray-100 font-raleway">
+      <div className="container mx-auto px-4 lg:px-8 max-w-7xl">
+        {/* Adjusted Grid: Brand takes 2 columns, links take 1 each */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+          
+          {/* Brand Section */}
+          <div className="lg:col-span-2 pr-8">
+            <a href="/" className="flex items-center gap-3 mb-6 group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 transition-transform group-hover:scale-105">
                 <img
-                  className="w-10 h-10"
+                  className="w-8 h-8 object-contain"
                   src="logo.png"
                   alt="Chattique Logo"
                 />
               </div>
-              <span className="text-xl font-bold font-raleway uppercase">Chattique</span>
+              <span className="text-2xl font-extrabold tracking-tight text-gray-900 uppercase">
+                Chattique
+              </span>
             </a>
-            <p className="text-muted-foreground text-sm mb-6">
-              Seamless video calling and chat for teams and individuals. Connect
-              from anywhere.
+            <p className="text-gray-500 leading-relaxed mb-8 max-w-sm">
+              Seamless video calling and chat for teams and individuals. Connect from anywhere, anytime.
             </p>
             <div className="flex gap-4">
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
+              {[Twitter, Github, Linkedin].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <Icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Product */}
-          <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="#features"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Features
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Security
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Enterprise
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  API Reference
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Support
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  About
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                >
-                  Terms of Service
-                </a>
-              </li>
-            </ul>
-          </div>
+          {/* Links Sections (Mapped for cleaner code, but you can hardcode them) */}
+          {[
+            {
+              title: "Product",
+              links: ["Features", "Pricing", "Security", "Enterprise"],
+            },
+            {
+              title: "Resources",
+              links: ["Documentation", "API Reference", "Blog", "Support"],
+            },
+            {
+              title: "Company",
+              links: ["About", "Careers", "Privacy Policy", "Terms of Service"],
+            },
+          ].map((section) => (
+            <div key={section.title}>
+              <h4 className="font-bold text-gray-900 mb-6">{section.title}</h4>
+              <ul className="space-y-4">
+                {section.links.map((link) => (
+                  <li key={link}>
+                    <a
+                      href="#"
+                      className="text-gray-500 hover:text-orange-600 font-medium transition-colors inline-flex items-center group"
+                    >
+                      {link}
+                      {/* Subtle arrow on hover */}
+                      <span className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+                        →
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground text-sm">
-            © 2025 Chattique. All rights reserved.KrushnaWebdev
+        <div className="mt-20 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-gray-500 text-sm font-medium">
+            © {new Date().getFullYear()} Chattique. All rights reserved by <span className="text-gray-900 font-bold">KrushnaWebdev</span>
           </p>
-          <p className="text-muted-foreground text-sm">
-            Made with ❤️ for seamless communication
-          </p>
+          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
+            Made with <span className="text-red-500 animate-pulse">❤️</span> for seamless communication
+          </div>
         </div>
       </div>
     </footer>
