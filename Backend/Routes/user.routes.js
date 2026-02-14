@@ -6,6 +6,7 @@ import {
   GoogleLogin,
   login,
   logout,
+  OTPSend,
   refresh,
   register,
   verifyPassword,
@@ -19,6 +20,7 @@ router.post("/logout", logout);
 router.get("/getuser", verifyToken, getuser);
 router.post("/verifyPassword", verifyToken, verifyPassword);
 router.post("/changepass", verifyToken, changePass);
+router.get("/otpsend", verifyToken, OTPSend);
 router.get("/check", cookieCheck);
 router.get("/refresh", refresh);
 router.get("/google/callback", GoogleLogin);

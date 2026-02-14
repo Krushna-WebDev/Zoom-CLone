@@ -9,7 +9,7 @@ export const Setting = () => {
 
   //model
   const [passwordModel, setPasswordModel] = useState(false);
-  const [forgotPassModel, setForgotPassModel] = useState(true);
+  const [forgotPassModel, setForgotPassModel] = useState(false);
 
   //states & ref
   const [curPassword, setCurPassword] = useState("");
@@ -98,6 +98,17 @@ export const Setting = () => {
       changePassword();
     } else verifyPass();
   };
+
+  const OtpSend = async () => {
+    const res = await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(res.data);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 mt-16 font-raleway p-6">
       <div className="mx-auto max-w-5xl">
@@ -392,6 +403,11 @@ export const Setting = () => {
                 ${isVerifed ? "bg-gray-50 text-gray-400 cursor-not-allowed border-gray-100" : "bg-white text-gray-900 placeholder-gray-400"}`}
                     />
                     <button
+                      onClick={() => {
+                        setPasswordModel(false);
+                        setForgotPassModel(true);
+                        OtpSend();
+                      }}
                       type="button"
                       className="text-sm font-medium text-gray-500 hover:text-orange-600 hover:underline transition-colors focus:outline-none rounded-sm px-1 -ml-1"
                     >
@@ -479,7 +495,80 @@ export const Setting = () => {
         {/* pending */}
         {forgotPassModel && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-            <div className="bg-white max-w-sm rounded "></div>
+            {/* Backdrop click to close */}
+            <div
+              className="absolute inset-0"
+              onClick={() => setForgotPassModel(false)}
+            ></div>
+
+            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100">
+              {/* Close Button (Top Right) */}
+              <button
+                onClick={() => setForgotPassModel(false)}
+                className="absolute right-4 top-4 p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded-full transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              {/* Security Icon */}
+              <div className="mx-auto w-16 h-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-6 border border-orange-100 shadow-sm">
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Check your email
+              </h2>
+              <p className="text-sm text-gray-500 mb-8 px-2">
+                We've sent a 6-digit verification code to your email address.
+              </p>
+
+              {/* OTP Input Field */}
+              <div className="mb-6">
+                <input
+                  type="text"
+                  maxLength={6}
+                  placeholder="••••••"
+                  className="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50 focus:bg-white uppercase"
+                />
+              </div>
+
+              {/* Verify Action */}
+              <button className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6">
+                Verify Code
+              </button>
+
+              {/* Resend Link */}
+              <p className="text-sm text-gray-500">
+                Didn't receive the code?{" "}
+                <button className="font-semibold text-orange-600 hover:text-orange-700 hover:underline focus:outline-none transition-colors underline-offset-2">
+                  Resend now
+                </button>
+              </p>
+            </div>
           </div>
         )}
       </div>

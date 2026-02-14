@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import crypto from "crypto";
 import { registerSchema } from "../validators/auth.validator.js";
 dotenv.config();
 export const register = async (req, res) => {
@@ -239,5 +240,23 @@ export const changePass = async (req, res) => {
     res.status(200).json({ message: "Password updated" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//pending
+export const OTPSend = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashOtp = await bcrypt.hash(otp, 10);
+
+    User.findByIdAndUpdate(userId, {
+      $set: {
+        otp: hashOtp,
+        otpExpiry: Date.now() + 5 * 60 * 1000,
+      },
+    });
+  } catch (error) {
+    console.log(error);
   }
 };
