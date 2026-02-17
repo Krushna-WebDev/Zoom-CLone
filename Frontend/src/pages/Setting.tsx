@@ -18,6 +18,7 @@ export const Setting = () => {
   const [isVerifed, setIsVerified] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const [optInput, setOtpInput] = useState<string>("");
 
   useEffect(() => {
     return () => {
@@ -100,13 +101,27 @@ export const Setting = () => {
   };
 
   const OtpSend = async () => {
-    const res = await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
+    await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
       withCredentials: true,
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log(res.data);
+    // todo
+  };
+  const verifyOtp = async () => {
+    await axios.post(
+      "http://localhost:5000/api/v1/auth/verifyotp",
+      {
+        otp: optInput,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
   };
 
   return (
@@ -550,6 +565,7 @@ export const Setting = () => {
               <div className="mb-6">
                 <input
                   type="text"
+                  onChange={(e) => setOtpInput(e.target.value)}
                   maxLength={6}
                   placeholder="••••••"
                   className="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50 focus:bg-white uppercase"
@@ -557,7 +573,10 @@ export const Setting = () => {
               </div>
 
               {/* Verify Action */}
-              <button className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6">
+              <button
+                onClick={verifyOtp}
+                className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
+              >
                 Verify Code
               </button>
 

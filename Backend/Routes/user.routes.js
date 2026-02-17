@@ -9,6 +9,7 @@ import {
   OTPSend,
   refresh,
   register,
+  verifyOtp,
   verifyPassword,
 } from "../Controllers/user.controller.js";
 import { verifyToken } from "../Middleware/verifyToken.js";
@@ -21,6 +22,7 @@ router.get("/getuser", verifyToken, getuser);
 router.post("/verifyPassword", verifyToken, verifyPassword);
 router.post("/changepass", verifyToken, changePass);
 router.get("/otpsend", verifyToken, OTPSend);
+router.post("/verifyotp", verifyToken, verifyOtp);
 router.get("/check", cookieCheck);
 router.get("/refresh", refresh);
 router.get("/google/callback", GoogleLogin);

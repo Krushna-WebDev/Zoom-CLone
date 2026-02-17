@@ -92,7 +92,6 @@ const Hero = () => {
       console.error(error);
     }
   };
-  console.log("meeting name ", meetingName);
   return (
     <>
       <div

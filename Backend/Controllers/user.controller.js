@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import crypto from "crypto";
 import { registerSchema } from "../validators/auth.validator.js";
+import nodemailer from "nodemailer";
 dotenv.config();
 export const register = async (req, res) => {
   try {
@@ -250,12 +251,51 @@ export const OTPSend = async (req, res) => {
     const otp = crypto.randomInt(100000, 999999).toString();
     const hashOtp = await bcrypt.hash(otp, 10);
 
-    User.findByIdAndUpdate(userId, {
-      $set: {
-        otp: hashOtp,
-        otpExpiry: Date.now() + 5 * 60 * 1000,
+    const user = await User.findById(userId);
+    await User.findByIdAndUpdate(
+      {
+        _id: userId,
+      },
+      {
+        $set: {
+          otp: hashOtp,
+          otpExpiry: Date.now() + 5 * 60 * 1000,
+        },
+      },
+      { new: true },
+    );
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "otp",
+      text: otp,
+    });
+    res.status(200).json({ message: "OTP sent to email" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { otp } = req.body;
+    const user = await User.findById(userId).select("-password");
+    const matchOtp = await bcrypt.compare(otp, user.otp);
+    if (!matchOtp || Date.now() > user.otpExpiry) {
+      console.log("Invalid Or expired OTP");
+      return res.status(400).json({ message: "Invalid Or expired OTP" });
+    }
+    // pending work
   } catch (error) {
     console.log(error);
   }
