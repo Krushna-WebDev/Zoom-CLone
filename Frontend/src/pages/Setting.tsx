@@ -19,6 +19,8 @@ export const Setting = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [optInput, setOtpInput] = useState<string>("");
+  const [otpSend, setOtpSend] = useState(false);
+  const [VerifiedOtp, setVerifiedOtp] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -84,7 +86,7 @@ export const Setting = () => {
           },
         },
       );
-      if ((res.status = 200)) {
+      if (res.status === 200) {
         toast.success(res.data.message);
         setPasswordModel(false);
         setIsVerified(false);
@@ -101,27 +103,43 @@ export const Setting = () => {
   };
 
   const OtpSend = async () => {
-    await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    // todo
-  };
-  const verifyOtp = async () => {
-    await axios.post(
-      "http://localhost:5000/api/v1/auth/verifyotp",
-      {
-        otp: optInput,
-      },
-      {
+    try {
+      const res = await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
-    );
+      });
+      if (res.status === 200) {
+        setOtpSend(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const verifyOtp = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/auth/verifyotp",
+        {
+          otp: optInput,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (res.status === 200) {
+        setVerifiedOtp(true);
+        setForgotPassModel(false);
+        setPasswordModel(true);
+        setIsVerified(true);
+      }
+    } catch (e: any) {
+      toast.error(e.response.data.message);
+    }
   };
 
   return (
@@ -377,9 +395,9 @@ export const Setting = () => {
                   </button>
                 </div>
 
-                <div className="p-6 space-y-5">
+                <div className="p-6 space-y-5 ">
                   {/* Current Password */}
-                  <div>
+                  <div className={`${VerifiedOtp ? "hidden" : ""}`}>
                     <div className="flex justify-between items-center mb-1.5">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">
                         Current Password
@@ -574,7 +592,11 @@ export const Setting = () => {
 
               {/* Verify Action */}
               <button
-                onClick={verifyOtp}
+                onClick={() => {
+                  if (otpSend) {
+                    verifyOtp();
+                  }
+                }}
                 className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
               >
                 Verify Code

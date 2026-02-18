@@ -281,7 +281,7 @@ export const OTPSend = async (req, res) => {
     });
     res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -290,12 +290,14 @@ export const verifyOtp = async (req, res) => {
     const userId = req.user.id;
     const { otp } = req.body;
     const user = await User.findById(userId).select("-password");
+    if (Date.now() > user.otpExpiry)
+      return res.status(400).json({ message: "Invalid Or Expired OTP" });
+
     const matchOtp = await bcrypt.compare(otp, user.otp);
-    if (!matchOtp || Date.now() > user.otpExpiry) {
-      console.log("Invalid Or expired OTP");
-      return res.status(400).json({ message: "Invalid Or expired OTP" });
-    }
-    // pending work
+    if (!matchOtp)
+      return res.status(400).json({ message: "Invalid Or Expired OTP" });
+
+    res.status(200).json({ message: "OTP verified" });
   } catch (error) {
     console.log(error);
   }
