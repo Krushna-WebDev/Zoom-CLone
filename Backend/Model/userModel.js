@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
   otpExpiry: {
     type: Date,
   },
+  otpVerified: {
+    type: Boolean,
+  },
+  otpVerifiedAt:{
+    type:Date
+  }
 });
 
 const User = mongoose.model("User", userSchema);

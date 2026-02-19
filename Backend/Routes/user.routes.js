@@ -1,6 +1,7 @@
 import express from "express";
 import {
   changePass,
+  changePassWithOtp,
   cookieCheck,
   getuser,
   GoogleLogin,
@@ -21,6 +22,7 @@ router.post("/logout", logout);
 router.get("/getuser", verifyToken, getuser);
 router.post("/verifyPassword", verifyToken, verifyPassword);
 router.post("/changepass", verifyToken, changePass);
+router.post("/changepass-otp", verifyToken, changePassWithOtp);
 router.get("/otpsend", verifyToken, OTPSend);
 router.post("/verifyotp", verifyToken, verifyOtp);
 router.get("/check", cookieCheck);

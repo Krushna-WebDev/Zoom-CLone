@@ -235,9 +235,48 @@ export const changePass = async (req, res) => {
       {
         $set: {
           password: newHashedPass,
+          otpVerified: false,
+          otpVerifiedAt: null,
+          otp: null,
+          otpExpiry: null,
         },
       },
     );
+    res.status(200).json({ message: "Password updated" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changePassWithOtp = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { newPassword } = req.body;
+    const user = await User.findById(userId);
+
+    if (!user || !user.otpVerified || !user.otpVerifiedAt) {
+      return res.status(400).json({ message: "Please verify OTP" });
+    }
+
+    const expiresAt = user.otpVerifiedAt + 5 * 60 * 1000;
+    if (Date.now() > expiresAt) {
+      return res.status(400).json({ message: "OTP Timeout" });
+    }
+
+    const newHashedPass = await bcrypt.hash(newPassword, 10);
+    await User.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          password: newHashedPass,
+          otpVerified: false,
+          otpVerifiedAt: null,
+          otp: null,
+          otpExpiry: null,
+        },
+      },
+    );
+
     res.status(200).json({ message: "Password updated" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -296,7 +335,10 @@ export const verifyOtp = async (req, res) => {
     const matchOtp = await bcrypt.compare(otp, user.otp);
     if (!matchOtp)
       return res.status(400).json({ message: "Invalid Or Expired OTP" });
-
+    await User.updateOne(
+      { _id: userId },
+      { $set: { otpVerified: true, otpVerifiedAt: Date.now() } },
+    );
     res.status(200).json({ message: "OTP verified" });
   } catch (error) {
     console.log(error);
