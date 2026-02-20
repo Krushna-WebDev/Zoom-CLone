@@ -344,3 +344,15 @@ export const verifyOtp = async (req, res) => {
     console.log(error);
   }
 };
+
+export const emailVerify = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email }).select("-password");
+    console.log(user);
+    if (!user) return res.status(400).json({ message: "Invalid Email" });
+    res.status(200).json({ message: "Email verified" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

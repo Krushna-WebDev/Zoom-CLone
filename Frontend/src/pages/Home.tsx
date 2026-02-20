@@ -1,8 +1,5 @@
 import React, { useContext, useState } from "react";
 import Hero from "../components/Hero";
-import { IoIosVideocam } from "react-icons/io";
-import { MdScreenShare } from "react-icons/md";
-import { BsChatSquareTextFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
@@ -24,14 +21,16 @@ const Home = () => {
   //context
   const { loginModel, setLoginModel } = useContext(ModalContext)!;
   const { RequireLoginModal, setRequireLoginModal } = useContext(ModalContext)!;
-  const { token,setToken } = useContext(UserContext)!;
+  const { setToken } = useContext(UserContext)!;
   //states
   const [formdata, setformdata] = useState<formdatainterface>({
     username: "",
     email: "",
     password: "",
   });
-  const [modelStatus, SetModelStatus] = useState(0); // 1 for login and 0 for signup
+  const [modelStatus, SetModelStatus] = useState(1); // 1 for login and 0 for signup
+  const [emailVerifyModel, setEmailVerifyModel] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
   // function
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setformdata({
@@ -39,7 +38,7 @@ const Home = () => {
       [e.target.name]: e.target.value,
     } as any);
   };
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       if (modelStatus === 1) {
@@ -47,7 +46,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         const res = await axios.post(
           "http://localhost:5000/api/v1/auth/login",
           { email: formdata.email, password: formdata.password },
-          { withCredentials: true } 
+          { withCredentials: true },
         );
         toast.success(res.data.message);
         setformdata({ username: "", email: "", password: "" });
@@ -60,7 +59,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         // Signup
         const res = await axios.post(
           "http://localhost:5000/api/v1/auth/register",
-          { name: formdata.username, email: formdata.email, password: formdata.password }
+          {
+            name: formdata.username,
+            email: formdata.email,
+            password: formdata.password,
+          },
         );
         toast.success(res.data.message);
         setformdata({ username: "", email: "", password: "" });
@@ -87,11 +90,25 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
     window.location.href = googleAuthUrl;
   };
+
+  const emailVerify = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/auth/emailverify",
+        {
+          email: emailInput,
+        },
+      );
+      console.log(res.data);
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+    }
+  };
   return (
     <>
       <Hero />
       <Features />
-      <HowItWorks/>
+      <HowItWorks />
       {loginModel && (
         <div className="flex justify-center items-center fixed z-50 bg-gray-900/50 inset-0 backdrop-blur-sm p-4">
           {/* Dynamic container based on modelStatus: flex-row-reverse swaps form and image position */}
@@ -229,12 +246,15 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     }`}
                   >
                     {modelStatus === 1 && (
-                      <Link
-                        to="/forgot-password"
+                      <button
+                        onClick={() => {
+                          setEmailVerifyModel(true);
+                          setLoginModel(false);
+                        }}
                         className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
                       >
                         Forgot password?
-                      </Link>
+                      </button>
                     )}
                   </div>
 
@@ -370,6 +390,131 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {emailVerifyModel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+          {/* Common Backdrop Click to Close */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setEmailVerifyModel(false)}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100">
+            {/* Close Button (Top Right) */}
+            <button
+              onClick={() => setEmailVerifyModel(false)}
+              className="absolute right-4 top-4 p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded-full transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Mail Icon */}
+            <div className="mx-auto w-16 h-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-6 border border-orange-100 shadow-sm">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Forgot Password?
+            </h2>
+            <p className="text-sm text-gray-500 mb-8 px-2">
+              Enter the email address associated with your account and we'll
+              send you a code to reset your password.
+            </p>
+
+            {/* Input Field Area */}
+            <div className="text-left mb-6">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5 ml-1">
+                Email Address
+              </label>
+              <div className="relative flex items-center group">
+                <div className="absolute left-4 text-gray-400 group-focus-within:text-orange-500 transition-colors pointer-events-none">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50 focus:bg-white font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={() => {
+                emailVerify();
+                // Trigger email send logic here
+                // Then open the OTP modal: setForgotPassModel(true);
+                // And close this one: setEmailVerifyModel(false);
+              }}
+              className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
+            >
+              Send Reset Code
+            </button>
+
+            {/* Back to Login Link */}
+            <button
+              onClick={() => {
+                setEmailVerifyModel(false);
+                setLoginModel(true);
+              }}
+              className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors inline-flex items-center gap-1.5"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Back to Login
+            </button>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import {
   changePass,
   changePassWithOtp,
   cookieCheck,
+  emailVerify,
   getuser,
   GoogleLogin,
   login,
@@ -21,6 +22,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.get("/getuser", verifyToken, getuser);
 router.post("/verifyPassword", verifyToken, verifyPassword);
+router.post("/emailverify", emailVerify);
 router.post("/changepass", verifyToken, changePass);
 router.post("/changepass-otp", verifyToken, changePassWithOtp);
 router.get("/otpsend", verifyToken, OTPSend);
