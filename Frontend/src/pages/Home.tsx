@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+﻿import React, { useContext, useState } from "react";
 import Hero from "../components/Hero";
 import { Link } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
@@ -7,6 +7,7 @@ import axios from "axios";
 import { IoCloseCircle } from "react-icons/io5";
 import { ModalContext } from "../../Context/ModelContext";
 import { toast } from "react-toastify";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { UserContext } from "../../Context/Context";
 import Features from "../components/Features";
 import HowItWorks from "../components/HowItWorks";
@@ -31,6 +32,7 @@ const Home = () => {
   const [modelStatus, SetModelStatus] = useState(1); // 1 for login and 0 for signup
   const [emailVerifyModel, setEmailVerifyModel] = useState(false);
   const [emailInput, setEmailInput] = useState("");
+  const [forgotPassOpen, setForgotPassOpen] = useState(false);
   // function
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setformdata({
@@ -89,20 +91,6 @@ const Home = () => {
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&access_type=offline&prompt=consent`;
 
     window.location.href = googleAuthUrl;
-  };
-
-  const emailVerify = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/v1/auth/emailverify",
-        {
-          email: emailInput,
-        },
-      );
-      console.log(res.data);
-    } catch (error: any) {
-      toast.error(error.response.data.message);
-    }
   };
   return (
     <>
@@ -482,10 +470,12 @@ const Home = () => {
             {/* Action Button */}
             <button
               onClick={() => {
-                emailVerify();
-                // Trigger email send logic here
-                // Then open the OTP modal: setForgotPassModel(true);
-                // And close this one: setEmailVerifyModel(false);
+                if (!emailInput) {
+                  toast.error("Please enter your email");
+                  return;
+                }
+                setEmailVerifyModel(false);
+                setForgotPassOpen(true);
               }}
               className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
             >
@@ -518,8 +508,26 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      <ForgotPasswordModal
+        isOpen={forgotPassOpen}
+        onClose={() => {
+          setForgotPassOpen(false);
+          setEmailInput("");
+        }}
+        mode="loggedOut"
+        email={emailInput}
+      />
     </>
   );
 };
 
 export default Home;
+
+
+
+
+
+
+
+

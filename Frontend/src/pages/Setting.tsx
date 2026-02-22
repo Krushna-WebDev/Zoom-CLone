@@ -2,6 +2,7 @@
 import { UserContext } from "../../Context/Context";
 import axios from "axios";
 import { toast } from "react-toastify";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 export const Setting = () => {
   //context
@@ -18,9 +19,6 @@ export const Setting = () => {
   const [isVerified, setIsVerified] = useState(false); // when user entered correct password or not
   const [newPassword, setNewPassword] = useState(""); // new password input
   const [confirmPass, setConfirmPass] = useState(""); // confirm new password input
-  const [optInput, setOtpInput] = useState<string>(""); // entred otp input
-  const [otpSend, setOtpSend] = useState(false); // if otp send or not
-  const [VerifiedOtp, setVerifiedOtp] = useState(false); // if otp is verify or not (right or not)
 
   useEffect(() => {
     return () => {
@@ -90,93 +88,16 @@ export const Setting = () => {
         toast.success(res.data.message);
         setPasswordModel(false);
         setIsVerified(false);
-        setVerifiedOtp(false);
       }
     } catch (error) {
       console.log(error);
-    }
-  };
-
-  const changePasswordWithOtp = async () => {
-    try {
-      if (newPassword != confirmPass) {
-        toast.error("Confirm Passworld MissMatch");
-        return;
-      }
-      const res = await axios.post(
-        "http://localhost:5000/api/v1/auth/changepass-otp",
-        {
-          newPassword,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (res.status === 200) {
-        toast.success(res.data.message);
-        setPasswordModel(false);
-        setIsVerified(false);
-        setVerifiedOtp(false);
-        setOtpSend(false);
-        setOtpInput("");
-      }
-    } catch (error: any) {
-      toast.error(error.response.data.message);
     }
   };
 
   const handleClick = () => {
-    if (VerifiedOtp) {
-      changePasswordWithOtp();
-    } else if (isVerified) {
+    if (isVerified) {
       changePassword();
     } else verifyPass();
-  };
-
-  const OtpSend = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.status === 200) {
-        setOtpSend(true);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const verifyOtp = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/v1/auth/verifyotp",
-        {
-          otp: optInput,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (res.status === 200) {
-        setVerifiedOtp(true);
-        setForgotPassModel(false);
-        setPasswordModel(true);
-        setIsVerified(true);
-      }
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        "OTP verification failed. Please try again.";
-      toast.error(msg);
-    }
   };
 
   return (
@@ -355,9 +276,6 @@ export const Setting = () => {
               className="absolute inset-0"
               onClick={() => {
                 setPasswordModel(false);
-                setVerifiedOtp(false);
-                setOtpSend(false);
-                setOtpInput("");
               }}
             ></div>
 
@@ -401,9 +319,6 @@ export const Setting = () => {
                 <button
                   onClick={() => {
                     setPasswordModel(false);
-                    setVerifiedOtp(false);
-                    setOtpSend(false);
-                    setOtpInput("");
                   }}
                   className="w-full py-3 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors shadow-md hover:shadow-lg"
                 >
@@ -425,9 +340,6 @@ export const Setting = () => {
                   <button
                     onClick={() => {
                       setPasswordModel(false);
-                      setVerifiedOtp(false);
-                      setOtpSend(false);
-                      setOtpInput("");
                     }}
                     className="rounded-full p-2 text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all"
                   >
@@ -449,7 +361,7 @@ export const Setting = () => {
 
                 <div className="p-6 space-y-5 ">
                   {/* Current Password */}
-                  <div className={`${VerifiedOtp ? "hidden" : ""}`}>
+                  <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">
                         Current Password
@@ -491,7 +403,6 @@ export const Setting = () => {
                       onClick={() => {
                         setPasswordModel(false);
                         setForgotPassModel(true);
-                        OtpSend();
                       }}
                       type="button"
                       className="text-sm font-medium text-gray-500 hover:text-orange-600 hover:underline transition-colors focus:outline-none rounded-sm px-1 -ml-1"
@@ -562,9 +473,6 @@ export const Setting = () => {
                   <button
                     onClick={() => {
                       setPasswordModel(false);
-                      setVerifiedOtp(false);
-                      setOtpSend(false);
-                      setOtpInput("");
                     }}
                     className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
                   >
@@ -583,115 +491,12 @@ export const Setting = () => {
           </div>
         )}
         {/* pending */}
-        {forgotPassModel && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-            {/* Backdrop click to close */}
-            <div
-              className="absolute inset-0"
-              onClick={() => {
-                setForgotPassModel(false);
-                setOtpSend(false);
-                setVerifiedOtp(false);
-                setOtpInput("");
-              }}
-            ></div>
-
-            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200 border border-gray-100">
-              {/* Close Button (Top Right) */}
-              <button
-                onClick={() => {
-                  setForgotPassModel(false);
-                  setOtpSend(false);
-                  setVerifiedOtp(false);
-                  setOtpInput("");
-                }}
-                className="absolute right-4 top-4 p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded-full transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              {/* Security Icon */}
-              <div className="mx-auto w-16 h-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-6 border border-orange-100 shadow-sm">
-                <svg
-                  className="w-8 h-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-              </div>
-
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Check your email
-              </h2>
-              <p className="text-sm text-gray-500 mb-8 px-2">
-                We've sent a 6-digit verification code to your email address.
-              </p>
-
-              {/* OTP Input Field */}
-              <div className="mb-6">
-                <input
-                  type="text"
-                  onChange={(e) => setOtpInput(e.target.value)}
-                  maxLength={6}
-                  placeholder="••••••"
-                  className="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all bg-gray-50 focus:bg-white uppercase"
-                />
-              </div>
-
-              {/* Verify Action */}
-              <button
-                onClick={() => {
-                  if (!otpSend) {
-                    toast.error("Please request an OTP first.");
-                    return;
-                  }
-                  if (optInput.trim().length !== 6) {
-                    toast.error("Please enter a 6-digit OTP");
-                    return;
-                  }
-                  verifyOtp();
-                }}
-                className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
-              >
-                Verify Code
-              </button>
-
-              {/* Resend Link */}
-              {/* todo */}
-              <p className="text-sm text-gray-500">
-                Didn't receive the code?{" "}
-                <button
-                onClick={()=>{
-                  OtpSend()
-                  toast.success("Check Your Mail")
-
-                }}
-                className="font-semibold text-orange-600 hover:text-orange-700 hover:underline focus:outline-none transition-colors underline-offset-2">
-                  Resend now
-                </button>
-              </p>
-            </div>
-          </div>
-        )}
+        <ForgotPasswordModal
+          isOpen={forgotPassModel}
+          onClose={() => setForgotPassModel(false)}
+          mode="loggedIn"
+          token={token}
+        />
       </div>
     </div>
   );
