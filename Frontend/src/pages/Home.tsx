@@ -92,6 +92,27 @@ const Home = () => {
 
     window.location.href = googleAuthUrl;
   };
+
+  const emailVerify = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/auth/emailverify",
+        {
+          email: emailInput,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      // console.log(res.data);
+      if (res.status === 200) {
+        setEmailVerifyModel(false);
+        setForgotPassOpen(true);
+      }
+    } catch (error: any) {
+      toast.error(error.response.data.message);
+    }
+  };
   return (
     <>
       <Hero />
@@ -107,7 +128,14 @@ const Home = () => {
           >
             {/* Close Button */}
             <button
-              onClick={() => setLoginModel(false)}
+              onClick={() => {
+                setLoginModel(false);
+                setformdata({
+                  username: "",
+                  email: "",
+                  password: "",
+                });
+              }}
               className="absolute top-5 right-5 z-20 text-gray-400 hover:text-red-500 transition-colors duration-300 p-1 rounded-full bg-white/50 hover:bg-white focus:outline-none focus:ring-2 focus:ring-red-500"
               aria-label="Close modal"
             >
@@ -474,8 +502,7 @@ const Home = () => {
                   toast.error("Please enter your email");
                   return;
                 }
-                setEmailVerifyModel(false);
-                setForgotPassOpen(true);
+                emailVerify();
               }}
               className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] mb-6"
             >
@@ -523,11 +550,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
-
-
-
-
-
-

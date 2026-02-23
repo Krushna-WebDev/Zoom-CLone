@@ -42,7 +42,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => 
           return;
         }
         await axios.post(
-          "http://localhost:5000/api/v1/auth/forgot-password/request",
+          "http://localhost:5000/api/v1/auth/otpsend-email",
           { email },
           { withCredentials: true },
         );

@@ -324,6 +324,10 @@ export const OTPSend = async (req, res) => {
   }
 };
 
+export const otpSendEmail = async (req, res) => {
+  const { email } = req.body;
+};
+
 export const verifyOtp = async (req, res) => {
   try {
     const userId = req.user.id;

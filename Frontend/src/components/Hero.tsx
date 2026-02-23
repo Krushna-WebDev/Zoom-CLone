@@ -5,6 +5,7 @@ import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
+import TestModel from "./TestModel";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -18,6 +19,9 @@ const Hero = () => {
   const [inputCode, setinputCode] = useState("");
   const [meetingcode, setMeetingCode] = useState<string | null>(null);
   const [meetingName, setMeetingName] = useState<string | null>(null);
+
+  //test
+  const [testModel, setTestModel] = useState(false);
 
   const GenerateCode = async () => {
     const generatedId = uuidv4();
@@ -131,6 +135,7 @@ const Hero = () => {
               <button className="bg-orange-500 text-white font-raleway px-3 py-2 rounded">
                 Start Video Call
               </button>
+              <button onClick={() => setTestModel(true)}>TestModel</button>
             </div>
           </div>
           {/* img right side */}
@@ -333,6 +338,7 @@ const Hero = () => {
           </div>
         )}
       </div>
+      <TestModel isOpen={testModel} IsClose={() => setTestModel(false)} />
     </>
   );
 };
