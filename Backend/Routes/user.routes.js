@@ -10,6 +10,7 @@ import {
   logout,
   OTPSend,
   otpSendEmail,
+  otpVerifyEmail,
   refresh,
   register,
   verifyOtp,
@@ -27,8 +28,9 @@ router.post("/emailverify", emailVerify);
 router.post("/changepass", verifyToken, changePass);
 router.post("/changepass-otp", verifyToken, changePassWithOtp);
 router.get("/otpsend", verifyToken, OTPSend);
-router.get("/otpsend-email", otpSendEmail);
+router.post("/forgot-password/otpsend", otpSendEmail);
 router.post("/verifyotp", verifyToken, verifyOtp);
+router.post("/forgot-password/verify-otp", otpVerifyEmail);
 router.get("/check", cookieCheck);
 router.get("/refresh", refresh);
 router.get("/google/callback", GoogleLogin);

@@ -12,7 +12,13 @@ interface Props {
   email?: string;
 }
 
-const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => {
+const ForgotPasswordModal = ({
+  isOpen,
+  onClose,
+  mode,
+  token,
+  email,
+}: Props) => {
   const [step, setStep] = useState<"otp" | "reset">("otp");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -34,6 +40,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => 
     }
   }, [isOpen]);
 
+  //todo jab otp bheju or email apr aa jaaye tabb hi next model open hona chahiye email model dekho 
   const sendOtp = async () => {
     try {
       if (mode === "loggedOut") {
@@ -42,15 +49,18 @@ const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => 
           return;
         }
         await axios.post(
-          "http://localhost:5000/api/v1/auth/otpsend-email",
+          "http://localhost:5000/api/v1/auth/forgot-password/otpsend",
           { email },
           { withCredentials: true },
         );
       } else {
-        await axios.get("http://localhost:5000/api/v1/auth/otpsend", {
-          withCredentials: true,
-          headers: authHeaders,
-        });
+        await axios.get(
+          "http://localhost:5000/api/v1/auth/otpsend",
+          {
+            withCredentials: true,
+            headers: authHeaders,
+          },
+        );
       }
 
       setOtpSent(true);
@@ -120,8 +130,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => 
       toast.success("Password updated");
       onClose();
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || "Failed to update password.";
+      const msg = err?.response?.data?.message || "Failed to update password.";
       toast.error(msg);
     }
   };
@@ -181,8 +190,7 @@ const ForgotPasswordModal = ({ isOpen, onClose, mode, token, email }: Props) => 
               Check your email
             </h2>
             <p className="text-sm text-gray-500 mb-8 px-2">
-              We&apos;ve sent a 6-digit verification code to your email
-              address.
+              We&apos;ve sent a 6-digit verification code to your email address.
             </p>
 
             <div className="mb-6">

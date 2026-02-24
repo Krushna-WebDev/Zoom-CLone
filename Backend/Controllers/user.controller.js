@@ -284,6 +284,7 @@ export const changePassWithOtp = async (req, res) => {
 };
 
 //pending
+// for log in user
 export const OTPSend = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -323,11 +324,48 @@ export const OTPSend = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// for log out user
 export const otpSendEmail = async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
+    if (!email)
+      return res.status(400).json({ message: "Please Provide Email" });
+    const user = await User.findOne({ email: email }).select("-password");
+    if (!user) return res.status(400).json({ message: "User Not Found" });
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    await User.updateOne(
+      {
+        email: email,
+      },
+      {
+        $set: {
+          otp: hashedOtp,
+          otpExpiry: Date.now() + 5 * 60 * 1000,
+          otpVerified: false,
+          otpVerifiedAt: null,
+        },
+      },
+    );
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "OTP",
+      text: otp,
+    });
+    res.status(200).json({ message: "OTP sent to your Email" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
-
+// for login user
 export const verifyOtp = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -345,15 +383,32 @@ export const verifyOtp = async (req, res) => {
     );
     res.status(200).json({ message: "OTP verified" });
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
+};
+// for log out user
+export const otpVerifyEmail = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!otp) return res.status(400).json({ message: "Please Provide OTP" });
+  const user = await User.findOne({ email: email }).select("-password");
+  if (!user) return res.status(400).json({ message: "User Not Found" });
+  if (Date.now() > user.otpExpiry)
+    return res.status(400).json({ message: "Invalid Or Expired OTP" });
+
+  const matchOtp = await bcrypt.compare(otp, user.otp);
+  if (!matchOtp)
+    return res.status(400).json({ message: "Invalid Or Expired OTP" });
+  await User.updateOne(
+    { email: email },
+    { $set: { otpVerified: true, otpVerifiedAt: Date.now() } },
+  );
+  res.status(200).json({ message: "OTP verified" });
 };
 
 export const emailVerify = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email: email }).select("-password");
-    console.log(user);
     if (!user) return res.status(400).json({ message: "Invalid Email" });
     res.status(200).json({ message: "Email verified" });
   } catch (error) {
