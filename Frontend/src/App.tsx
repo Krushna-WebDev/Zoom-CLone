@@ -9,6 +9,8 @@ import ChatLayout from "./pages/Chat/ChatLayout";
 import NotFound404 from "./pages/NotFound404";
 import History from "./pages/History";
 import { Setting } from "./pages/Setting";
+import About from "./pages/About";
+import Features from "./pages/Features";
 
 const App = () => {
   return (
@@ -22,7 +24,15 @@ const App = () => {
 
 function Layout() {
   const location = useLocation();
-  const showNavbar = ["/", "/login", "/signup","/history","/settings"].includes(location.pathname);
+  const showNavbar = [
+    "/",
+    "/login",
+    "/signup",
+    "/history",
+    "/settings",
+    "/about",
+    "/features",
+  ].includes(location.pathname);
   const [loginModel, setLoginModel] = useState(false);
   return (
     <div>
@@ -40,6 +50,8 @@ function Layout() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Setting />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/features" element={<Features />} />
         <Route path="/notfound" element={<NotFound404 />} />
         <Route path="/chatarea/:meetingId" element={<ChatLayout />} />
         

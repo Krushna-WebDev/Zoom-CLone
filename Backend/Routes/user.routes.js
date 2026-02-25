@@ -13,6 +13,7 @@ import {
   otpVerifyEmail,
   refresh,
   register,
+  resetPass,
   verifyOtp,
   verifyPassword,
 } from "../Controllers/user.controller.js";
@@ -27,6 +28,7 @@ router.post("/verifyPassword", verifyToken, verifyPassword);
 router.post("/emailverify", emailVerify);
 router.post("/changepass", verifyToken, changePass);
 router.post("/changepass-otp", verifyToken, changePassWithOtp);
+router.post("/forgot-password/reset-pass", resetPass);
 router.get("/otpsend", verifyToken, OTPSend);
 router.post("/forgot-password/otpsend", otpSendEmail);
 router.post("/verifyotp", verifyToken, verifyOtp);

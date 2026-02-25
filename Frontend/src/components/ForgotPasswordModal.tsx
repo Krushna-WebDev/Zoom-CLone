@@ -40,7 +40,6 @@ const ForgotPasswordModal = ({
     }
   }, [isOpen]);
 
-  //todo jab otp bheju or email apr aa jaaye tabb hi next model open hona chahiye email model dekho 
   const sendOtp = async () => {
     try {
       if (mode === "loggedOut") {
@@ -48,23 +47,28 @@ const ForgotPasswordModal = ({
           toast.error("Please enter your email first.");
           return;
         }
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:5000/api/v1/auth/forgot-password/otpsend",
           { email },
           { withCredentials: true },
         );
+        if (res.status === 200) {
+          setOtpSent(true);
+          toast.success(res.data.message);
+        }
       } else {
-        await axios.get(
+        const res = await axios.get(
           "http://localhost:5000/api/v1/auth/otpsend",
           {
             withCredentials: true,
             headers: authHeaders,
           },
         );
+        if (res.status === 200) {
+          setOtpSent(true);
+          toast.success(res.data.message);
+        }
       }
-
-      setOtpSent(true);
-      toast.success("OTP sent to your email");
     } catch (err: any) {
       const msg =
         err?.response?.data?.message || "Failed to send OTP. Try again.";
@@ -84,20 +88,26 @@ const ForgotPasswordModal = ({
       }
 
       if (mode === "loggedOut") {
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:5000/api/v1/auth/forgot-password/verify-otp",
           { email, otp },
           { withCredentials: true },
         );
+        if (res.status === 200) {
+          toast.success(res.data.message);
+          setStep("reset");
+        }
       } else {
-        await axios.post(
+        const res = await axios.post(
           "http://localhost:5000/api/v1/auth/verifyotp",
           { otp },
           { withCredentials: true, headers: authHeaders },
         );
+        if (res.status === 200) {
+          toast.success(res.data.message);
+          setStep("reset");
+        }
       }
-
-      setStep("reset");
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -115,7 +125,7 @@ const ForgotPasswordModal = ({
 
       if (mode === "loggedOut") {
         await axios.post(
-          "http://localhost:5000/api/v1/auth/forgot-password/reset",
+          "http://localhost:5000/api/v1/auth/forgot-password/reset-pass",
           { email, newPassword },
           { withCredentials: true },
         );
