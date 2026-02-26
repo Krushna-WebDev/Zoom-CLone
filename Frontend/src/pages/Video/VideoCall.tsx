@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef } from "react";
 import { SocketContext } from "../../../Context/SocketContext";
 import { useParams } from "react-router-dom";
 
-//todo:- testing video calling in multiple tabs or browser
 // TODO :- Offer glare
 
 const VideoCall = () => {
@@ -41,7 +40,6 @@ const VideoCall = () => {
       });
 
       stream.getTracks().forEach((track) => {
-        console.log("added track", track);
         pcRef.current?.addTrack(track, stream);
       });
 
@@ -50,7 +48,6 @@ const VideoCall = () => {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
-      //pcRef.current.onicecandidate
     };
     setupVideo();
   }, []);
@@ -87,6 +84,7 @@ const VideoCall = () => {
     await pcRef.current?.setLocalDescription(offer);
     socket.emit("offer", { offer, meetingId });
   };
+  
   const getCameraVideoTrack = () => {
     return streamRef.current?.getVideoTracks()[0];
   };
@@ -95,7 +93,6 @@ const VideoCall = () => {
   };
   const toggleVideo = () => {
     const videoTrack = getCameraVideoTrack();
-    console.log("video track", videoTrack);
     if (!videoTrack) return;
 
     videoTrack.enabled = !videoTrack.enabled;
@@ -158,6 +155,9 @@ const VideoCall = () => {
         await pcRef.current.setRemoteDescription(
           new RTCSessionDescription(offer),
         );
+        if (pcRef.current.signalingState !== "have-remote-offer") {
+          return;
+        }
         pendingICERef.current.forEach((c) => pcRef.current?.addIceCandidate(c));
         pendingICERef.current = [];
         const answer = await pcRef.current.createAnswer();
@@ -183,11 +183,11 @@ const VideoCall = () => {
   }, [socket]);
   return (
     <>
-      <div className="min-h-screen bg-[#0b0f19] text-white">
-        <div className="relative min-h-screen">
+      <div className="h-full bg-[#0b0f19] text-white">
+        <div className="relative h-full min-h-full">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#1c2333_0%,#0b0f19_55%,#090c14_100%)]" />
 
-          <div className="relative flex flex-col min-h-screen">
+          <div className="relative flex flex-col h-full min-h-full">
             <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-6">
               <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
                 <span className="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
@@ -198,25 +198,34 @@ const VideoCall = () => {
               </div>
             </div>
 
-            <div className="flex-1 relative">
-              <video
-                ref={remoteVideoRef}
-                className="h-full w-full object-cover"
-                autoPlay
-                playsInline
-              />
-
-              <div className="absolute bottom-28 right-8 w-56 h-40 rounded-2xl overflow-hidden border border-white/10 bg-black/30 shadow-2xl backdrop-blur">
-                <div className="absolute top-2 left-2 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
-                  You
+            <div className="flex-1 w-full h-full overflow-hidden">
+              <div className="flex h-full w-full gap-4 px-6 pb-24 pt-16">
+                {/* Remote */}
+                <div className="relative flex-1 rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+                  <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    Remote
+                  </div>
+                  <video
+                    ref={remoteVideoRef}
+                    className="w-full h-full object-contain"
+                    autoPlay
+                    playsInline
+                  />
                 </div>
-                <video
-                  ref={localVideoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  playsInline
-                />
+
+                {/* You */}
+                <div className="relative w-[28%] min-w-[220px] rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+                  <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    You
+                  </div>
+                  <video
+                    ref={localVideoRef}
+                    className="w-full h-full object-cover scale-x-[-1]"
+                    autoPlay
+                    muted
+                    playsInline
+                  />
+                </div>
               </div>
             </div>
 
