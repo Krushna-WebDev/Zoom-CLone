@@ -35,7 +35,6 @@ const io = new Server(server, {
   },
 });
 
-// Helper function to validate user per event
 async function validateUser(socket, callback) {
   try {
     const authToken = socket.handshake.auth;

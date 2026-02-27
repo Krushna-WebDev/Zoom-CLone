@@ -17,12 +17,29 @@ const VideoCall = () => {
 
   useEffect(() => {
     const setupVideo = async () => {
+      const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30, max: 60 },
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 48000,
+        },
+      });
       pcRef.current = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
       if (!pcRef.current) return;
+
+      // this will run when setLocalDescription(offer) set
       pcRef.current.onicecandidate = (event) => {
         if (!socket) return;
+        console.log(event.candidate);
         if (event.candidate) {
           socket.emit("ice-candidate", {
             candidate: event.candidate,
@@ -30,14 +47,11 @@ const VideoCall = () => {
           });
         }
       };
+
       pcRef.current.ontrack = (event) => {
         if (!remoteVideoRef.current) return;
         remoteVideoRef.current.srcObject = event.streams[0];
       };
-      const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
 
       stream.getTracks().forEach((track) => {
         pcRef.current?.addTrack(track, stream);
@@ -57,12 +71,10 @@ const VideoCall = () => {
 
     const handleIce = async ({ candidate }: any) => {
       if (!candidate || !pcRef.current) return;
-
       if (!pcRef.current.remoteDescription) {
         pendingICERef.current.push(candidate);
         return;
       }
-
       await pcRef.current.addIceCandidate(candidate);
     };
 
@@ -80,11 +92,10 @@ const VideoCall = () => {
       return;
     }
     const offer = await pcRef.current.createOffer();
-    console.log("offer created", offer);
     await pcRef.current?.setLocalDescription(offer);
     socket.emit("offer", { offer, meetingId });
   };
-  
+
   const getCameraVideoTrack = () => {
     return streamRef.current?.getVideoTracks()[0];
   };
@@ -164,7 +175,9 @@ const VideoCall = () => {
         await pcRef.current.setLocalDescription(answer);
         socket.emit("answer", { answer, meetingId });
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
   useEffect(() => {
