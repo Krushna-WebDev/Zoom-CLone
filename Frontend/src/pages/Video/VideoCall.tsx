@@ -124,20 +124,27 @@ const VideoCall = () => {
 
   const screenshare = async () => {
     const screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { ideal: 30, max: 60 },
+      },
+      audio: false,
     });
 
     const screenTrack = screenStream.getVideoTracks()[0];
-    if (!screenTrack || !pcRef.current) return;
+    if (!screenTrack || !pcRef.current) return
 
     const sender = pcRef.current
       .getSenders()
       .find((s) => s.track?.kind === "video");
-
     if (!sender) {
       console.warn("No video sender found");
       return;
     }
+    const params = sender.getParameters();
+    params.encodings = [{ maxBitrate: 2_500_000 }];
+    await sender.setParameters(params);
 
     // Replace camera with screen
     await sender.replaceTrack(screenTrack);
