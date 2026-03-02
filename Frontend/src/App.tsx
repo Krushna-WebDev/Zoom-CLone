@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import Signup from "./pages/Signup";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -34,19 +33,11 @@ function Layout() {
     "/features",
     "/bug-report",
   ].includes(location.pathname);
-  const [loginModel, setLoginModel] = useState(false);
   return (
     <div>
-      {showNavbar && (
-        <Navbar loginModel={loginModel} setLoginModel={setLoginModel} />
-      )}
+      {showNavbar && <Navbar />}
       <Routes>
-        <Route
-          path="/"
-          element={
-            <Home loginModel={loginModel} setLoginModel={setLoginModel} />
-          }
-        />
+        <Route path="/" element={<Home />} />
         {/* <Route path="/login" element={<Login />} /> */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/history" element={<History />} />
