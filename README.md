@@ -1,81 +1,131 @@
-# Zoom Clone (Chattique)
+﻿# Chattique - Real-Time Chat and Video Calling App
 
-A Zoom‑inspired real‑time chat + video calling app built with React, Node.js, Socket.IO, and WebRTC.
-
----
-
-## Summary
-- **Frontend:** Vite + React + TypeScript
-- **Backend:** Node.js + Express + Socket.IO
-- **Realtime:** Socket.IO for signalling + chat
-- **Video/Audio:** WebRTC (P2P mesh)
-- **Auth:** Email/password + Google OAuth (token + refresh cookie)
+A Zoom-inspired real-time chat and video calling application built using React, Node.js, Socket.IO, and WebRTC.
 
 ---
 
-## Features (current)
-- Auth: register, login, logout, Google OAuth
-- Meetings: create/join, participants list
-- Chat: real‑time messaging (Socket.IO)
-- Video call: P2P WebRTC, screen sharing, mic/video toggles
-- Pages: Home, About, Features, Settings, History, Chat/Video
+## Project Status
+Active Development (Work in Progress)
+
+Core functionality is implemented and working.
+UI refinements, performance optimizations, and scalability improvements are currently in progress.
 
 ---
 
-## Known TODOs (from code)
-Found via `TODO / pending` comments:
-- `Backend/Controllers/user.controller.js` – pending section for OTP flow improvements
-- `Frontend/src/pages/Chat/ChatArea.tsx` – role‑based offer flow
-- `Frontend/src/pages/History.tsx` – title set, add participant images, download button
-- `Frontend/src/pages/Setting.tsx` – pending cleanup marker
-- `Frontend/src/pages/Video/VideoCall.tsx` – glare handling (perfect negotiation)
+## Tech Stack
+Frontend
+- Vite
+- React
+- TypeScript
+- Tailwind CSS
+- React Router
+- Axios
+
+Backend
+- Node.js
+- Express
+- Socket.IO
+- MongoDB + Mongoose
+- Nodemailer
+- Zod
+
+Realtime Communication
+- Socket.IO (Signaling + Real-time Chat)
+- WebRTC (Peer-to-Peer Mesh for Video/Audio)
+
+Authentication
+- Email and Password
+- Google OAuth
+- JWT (Access Token + Refresh Token via HTTP-only cookies)
 
 ---
 
-## Pending tasks you noted (from Notes.md)
-High level tasks still open:
-- Validate meeting code / verification code
-- Refresh token handling for all API calls
-- Chat UI spacing/design improvements
-- Bug report page
-- Clean up file structure, naming conventions, contexts
-- Multi‑user video (currently designed for 1:1 / small group)
+## Current Features
+Authentication
+- User registration
+- User login and logout
+- Google OAuth integration
+- Secure token-based authentication with refresh flow
+
+Meetings
+- Create meeting rooms
+- Join meeting rooms
+- Live participant list
+
+Chat
+- Real-time messaging using Socket.IO
+- Room-based communication
+
+Video Calling
+- Peer-to-peer WebRTC video and audio calls
+- Screen sharing
+- Mic toggle
+- Camera toggle
+
+Pages Implemented
+- Home
+- About
+- Features
+- Settings
+- History
+- Chat and Video Room
 
 ---
 
-## Flaws / risks / bugs to watch
-### Security
-- Access token in localStorage → XSS risk
-- Socket events may lack strict auth checks
-- No rate‑limiting on auth endpoints
-- Chat messages not sanitized (XSS risk)
-
-### WebRTC Stability
-- ICE candidates can arrive before remote description (buffering needed)
-- Offer/answer glare possible → implement perfect negotiation
-- P2P mesh does not scale well beyond 3–4 users
-
-### UX / Reliability
-- No chat persistence (unless DB message storage added)
-- No reconnect/re‑sync for socket reconnects
-- Media permission errors not fully handled
+## In Progress / Planned Improvements
+- UI/UX refinements
+- Improved error handling and edge case management
+- Performance optimization for multiple participants
+- Better meeting history persistence
+- Load last messages when joining a room
+- Production-ready deployment configuration
 
 ---
 
-## What you can add next (recommended)
-1. **SFU (mediasoup/Janus)** for >4 participants
-2. **Chat history** persistence (last 15 messages)
-3. **Bug report page** (simple form + DB)
-4. **Device controls** (camera/mic selection)
-5. **Recording** (server‑side or client‑side)
-
----
-
-## How to run (example)
-> Update this with your actual commands.
+## Local Development Setup
+1. Clone the repository
+```bash
+git clone <your-repo-url>
+cd chattique
 ```
-Frontend: npm run dev
-Backend: npm run dev
+
+2. Frontend setup
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+3. Backend setup
+```bash
+cd Backend
+npm install
+npm run start
 ```
 
 ---
+
+## Environment Variables
+Create the following files with your own values.
+
+Backend `.env`
+- PORT
+- MONGODB_URI
+- JWT_SECRET
+- ACCESS_TOKEN_SECRET
+- REFRESH_TOKEN_SECRET
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- EMAIL_USER
+- EMAIL_PASSWORD
+
+Frontend `.env`
+- VITE_GOOGLE_CLIENT_ID
+
+---
+
+## Notes
+- Currently optimized for small group P2P mesh calls (1-4 participants recommended).
+- For large-scale production usage, an SFU-based architecture would be required.
+- Best tested in modern Chromium-based browsers.
+- Do not commit `.env` files. Rotate secrets if they were ever committed.
