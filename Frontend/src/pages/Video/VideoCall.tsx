@@ -39,7 +39,6 @@ const VideoCall = () => {
       // this will run when setLocalDescription(offer) set
       pcRef.current.onicecandidate = (event) => {
         if (!socket) return;
-        console.log(event.candidate);
         if (event.candidate) {
           socket.emit("ice-candidate", {
             candidate: event.candidate,
