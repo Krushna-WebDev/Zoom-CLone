@@ -85,7 +85,7 @@ Pages Implemented
 ## Local Development Setup
 1. Clone the repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Krushna-WebDev/Zoom-CLone.git
 cd chattique
 ```
 
