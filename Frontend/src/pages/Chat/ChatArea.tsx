@@ -256,6 +256,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
               }
             }}
             placeholder="Type a message..."
+            aria-label="Message"
+            autoComplete="off"
             className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
           />
           <button
