@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../../../Context/SocketContext";
 import { useParams } from "react-router-dom";
 
@@ -14,6 +14,9 @@ const VideoCall = () => {
   const isScreenSharingRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
   const pendingICERef = useRef<RTCIceCandidateInit[]>([]);
+  const [participants, setParticipants] = useState<
+    { userId?: string; name?: string; profilePic?: string; socketId?: string }[]
+  >([]);
 
   useEffect(() => {
     const setupVideo = async () => {
@@ -81,6 +84,17 @@ const VideoCall = () => {
 
     return () => {
       socket.off("ice-candidate", handleIce);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleUsers = ({ users }: any) => {
+      setParticipants(Array.isArray(users) ? users : []);
+    };
+    socket.on("Connected-Users", handleUsers);
+    return () => {
+      socket.off("Connected-Users", handleUsers);
     };
   }, [socket]);
 
@@ -213,7 +227,8 @@ const VideoCall = () => {
                 Live
               </div>
               <div className="pointer-events-auto rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-                Room: {meetingId}
+                Room: {meetingId} • {participants.length} participant
+                {participants.length === 1 ? "" : "s"}
               </div>
             </div>
 
