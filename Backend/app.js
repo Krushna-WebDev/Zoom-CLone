@@ -61,7 +61,7 @@ io.on("connection", async (socket) => {
 
   socket.on("join-room", async ({ meetingId, name }) => {
     try {
-      // Re-validate user on join
+
       if (!(await validateUser(socket))) return;
 
       const meeting = await Meeting.findOne({ MeetingId: meetingId });
@@ -117,16 +117,19 @@ io.on("connection", async (socket) => {
         user: name,
       });
 
-      socket.on("offer", ({ offer, meetingId }) => {
-        socket.to(meetingId).emit("offer", offer);
+      socket.on("offer", ({ offer, meetingId, to, from }) => {
+        if (!to) return;
+        io.to(to).emit("offer", { offer, from });
       });
 
-      socket.on("answer", ({ answer, meetingId }) => {
-        socket.to(meetingId).emit("answer", answer);
+      socket.on("answer", ({ answer, meetingId, to, from }) => {
+        if (!to) return;
+        io.to(to).emit("answer", { answer, from });
       });
 
-      socket.on("ice-candidate", ({ candidate, meetingId }) => {
-        socket.to(meetingId).emit("ice-candidate", { candidate });
+      socket.on("ice-candidate", ({ candidate, meetingId, to, from }) => {
+        if (!to) return;
+        io.to(to).emit("ice-candidate", { candidate, from });
       });
 
       if (deleteRoom[meetingId]) {
@@ -169,7 +172,7 @@ io.on("connection", async (socket) => {
         Time: new Date(),
       });
 
-     await Meeting.findOneAndUpdate(
+      await Meeting.findOneAndUpdate(
         { MeetingId: meetingId },
         {
           $push: {
@@ -216,6 +219,8 @@ io.on("connection", async (socket) => {
       socket.to(meetingId).emit("userLeft", {
         type: "leave",
         user: socket.name,
+        socketId: socket.id,
+        userId: socket.userId,
       });
 
       cleanupUser(meetingId, socket);
@@ -233,6 +238,8 @@ io.on("connection", async (socket) => {
       socket.to(meetingId).emit("userLeft", {
         type: "leave",
         user: socket.name,
+        socketId: socket.id,
+        userId: socket.userId,
       });
       cleanupUser(meetingId, socket);
     } catch (error) {

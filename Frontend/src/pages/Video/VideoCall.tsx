@@ -1,22 +1,29 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../../../Context/SocketContext";
+import { UserContext } from "../../../Context/Context";
 import { useParams } from "react-router-dom";
 
-// TODO :- Offer glare
-
+// simple 4-person mesh (max 4 including you)
 const VideoCall = () => {
-  //context
   const socket = useContext(SocketContext);
+  const { user } = useContext(UserContext)!;
   const { meetingId } = useParams();
+
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const isScreenSharingRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
-  const pendingICERef = useRef<RTCIceCandidateInit[]>([]);
+  const isScreenSharingRef = useRef(false);
+
+  const peersRef = useRef<Record<string, RTCPeerConnection>>({});
+  const pendingICERef = useRef<Record<string, RTCIceCandidateInit[]>>({});
+  const offeredRef = useRef<Record<string, boolean>>({});
+
   const [participants, setParticipants] = useState<
     { userId?: string; name?: string; profilePic?: string; socketId?: string }[]
   >([]);
+  const [remoteStreams, setRemoteStreams] = useState<
+    { socketId: string; stream: MediaStream }[]
+  >([]);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const setupVideo = async () => {
@@ -34,80 +41,172 @@ const VideoCall = () => {
           sampleRate: 48000,
         },
       });
-      pcRef.current = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-      });
-      if (!pcRef.current) return;
-
-      // this will run when setLocalDescription(offer) set
-      pcRef.current.onicecandidate = (event) => {
-        if (!socket) return;
-        if (event.candidate) {
-          socket.emit("ice-candidate", {
-            candidate: event.candidate,
-            meetingId,
-          });
-        }
-      };
-
-      pcRef.current.ontrack = (event) => {
-        if (!remoteVideoRef.current) return;
-        remoteVideoRef.current.srcObject = event.streams[0];
-      };
-
-      stream.getTracks().forEach((track) => {
-        pcRef.current?.addTrack(track, stream);
-      });
 
       streamRef.current = stream;
-
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
+      setIsReady(true);
     };
+
     setupVideo();
   }, []);
 
+  // make sure video page also joins the room
+  useEffect(() => {
+    if (!socket || !user || !meetingId) return;
+    socket.emit("join-room", { meetingId, name: user.name });
+
+    return () => {
+      socket.emit("leave-room", meetingId);
+    };
+  }, [socket, user, meetingId]);
+
+  const upsertRemoteStream = (socketId: string, stream: MediaStream) => {
+    setRemoteStreams((prev) => {
+      const idx = prev.findIndex((p) => p.socketId === socketId);
+      if (idx === -1) return [...prev, { socketId, stream }];
+      const copy = [...prev];
+      copy[idx] = { socketId, stream };
+      return copy;
+    });
+  };
+
+  const removePeer = (socketId: string) => {
+    const pc = peersRef.current[socketId];
+    if (pc) pc.close();
+    delete peersRef.current[socketId];
+    delete pendingICERef.current[socketId];
+    delete offeredRef.current[socketId];
+    setRemoteStreams((prev) => prev.filter((p) => p.socketId !== socketId));
+  };
+
+  const createPeer = (socketId: string) => {
+    if (peersRef.current[socketId]) return peersRef.current[socketId];
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
+
+    pc.onicecandidate = (event) => {
+      if (!socket || !event.candidate) return;
+      socket.emit("ice-candidate", {
+        to: socketId,
+        from: socket.id,
+        candidate: event.candidate,
+        meetingId,
+      });
+    };
+
+    pc.ontrack = (event) => {
+      upsertRemoteStream(socketId, event.streams[0]);
+    };
+
+    pc.onconnectionstatechange = () => {
+      const state = pc.connectionState;
+      if (state === "failed" || state === "closed" || state === "disconnected") {
+        removePeer(socketId);
+      }
+    };
+
+    streamRef.current?.getTracks().forEach((track) => {
+      pc.addTrack(track, streamRef.current!);
+    });
+
+    peersRef.current[socketId] = pc;
+    return pc;
+  };
+
+  const makeOffer = async (peerId: string) => {
+    if (!socket) return;
+    const pc = createPeer(peerId);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    offeredRef.current[peerId] = true;
+    socket.emit("offer", { to: peerId, from: socket.id, offer, meetingId });
+  };
+
+  const syncPeers = (users: any[]) => {
+    if (!socket || !isReady) return;
+    const myId = socket.id;
+    const others = users.filter((u) => u.socketId && u.socketId !== myId);
+    const otherIds = new Set(others.map((u) => u.socketId));
+
+    Object.keys(peersRef.current).forEach((id) => {
+      if (!otherIds.has(id)) removePeer(id);
+    });
+
+    others.forEach((u) => {
+      createPeer(u.socketId);
+      if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
+        makeOffer(u.socketId);
+      }
+    });
+  };
+
   useEffect(() => {
     if (!socket) return;
 
-    const handleIce = async ({ candidate }: any) => {
-      if (!candidate || !pcRef.current) return;
-      if (!pcRef.current.remoteDescription) {
-        pendingICERef.current.push(candidate);
-        return;
-      }
-      await pcRef.current.addIceCandidate(candidate);
+    const handleUsers = ({ users }: any) => {
+      setParticipants(Array.isArray(users) ? users : []);
+      syncPeers(Array.isArray(users) ? users : []);
     };
 
+    const handleUserLeft = ({ socketId }: any) => {
+      if (socketId) removePeer(socketId);
+    };
+
+    const handleOffer = async ({ from, offer }: any) => {
+      if (!from || !offer) return;
+      const pc = createPeer(from);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+      const pending = pendingICERef.current[from] || [];
+      pending.forEach((c) => pc.addIceCandidate(c));
+      pendingICERef.current[from] = [];
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit("answer", { to: from, from: socket.id, answer, meetingId });
+    };
+
+    const handleAnswer = async ({ from, answer }: any) => {
+      if (!from || !answer) return;
+      const pc = peersRef.current[from];
+      if (!pc) return;
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+      const pending = pendingICERef.current[from] || [];
+      pending.forEach((c) => pc.addIceCandidate(c));
+      pendingICERef.current[from] = [];
+    };
+
+    const handleIce = async ({ from, candidate }: any) => {
+      if (!from || !candidate) return;
+      const pc = peersRef.current[from];
+      if (!pc || !pc.remoteDescription) {
+        pendingICERef.current[from] = [
+          ...(pendingICERef.current[from] || []),
+          candidate,
+        ];
+        return;
+      }
+      await pc.addIceCandidate(candidate);
+    };
+
+    socket.on("Connected-Users", handleUsers);
+    socket.on("userLeft", handleUserLeft);
+    socket.on("offer", handleOffer);
+    socket.on("answer", handleAnswer);
     socket.on("ice-candidate", handleIce);
 
     return () => {
+      socket.off("Connected-Users", handleUsers);
+      socket.off("userLeft", handleUserLeft);
+      socket.off("offer", handleOffer);
+      socket.off("answer", handleAnswer);
       socket.off("ice-candidate", handleIce);
     };
-  }, [socket]);
-
-  useEffect(() => {
-    if (!socket) return;
-    const handleUsers = ({ users }: any) => {
-      setParticipants(Array.isArray(users) ? users : []);
-    };
-    socket.on("Connected-Users", handleUsers);
-    return () => {
-      socket.off("Connected-Users", handleUsers);
-    };
-  }, [socket]);
-
-  const sendOffer = async () => {
-    if (!socket) return;
-    if (!pcRef.current) {
-      console.warn("PeerConnection is not initialized yet.");
-      return;
-    }
-    const offer = await pcRef.current.createOffer();
-    await pcRef.current?.setLocalDescription(offer);
-    socket.emit("offer", { offer, meetingId });
-  };
+  }, [socket, isReady]);
 
   const getCameraVideoTrack = () => {
     return streamRef.current?.getVideoTracks()[0];
@@ -115,24 +214,33 @@ const VideoCall = () => {
   const getAudioTrack = () => {
     return streamRef.current?.getAudioTracks()[0];
   };
+
   const toggleVideo = () => {
     const videoTrack = getCameraVideoTrack();
     if (!videoTrack) return;
-
     videoTrack.enabled = !videoTrack.enabled;
   };
+
   const toggleAudio = () => {
     const audioTrack = getAudioTrack();
     if (!audioTrack) return;
     audioTrack.enabled = !audioTrack.enabled;
   };
+
   const endCall = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    pcRef.current?.close();
-    pcRef.current = null;
+
+    Object.keys(peersRef.current).forEach((id) => removePeer(id));
+  };
+
+  const replaceVideoTrack = async (newTrack: MediaStreamTrack) => {
+    const pcs = Object.values(peersRef.current);
+    for (const pc of pcs) {
+      const sender = pc.getSenders().find((s) => s.track?.kind === "video");
+      if (sender) await sender.replaceTrack(newTrack);
+    }
   };
 
   const screenshare = async () => {
@@ -146,74 +254,31 @@ const VideoCall = () => {
     });
 
     const screenTrack = screenStream.getVideoTracks()[0];
-    if (!screenTrack || !pcRef.current) return
+    if (!screenTrack) return;
 
-    const sender = pcRef.current
-      .getSenders()
-      .find((s) => s.track?.kind === "video");
-    if (!sender) {
-      console.warn("No video sender found");
-      return;
-    }
-    const params = sender.getParameters();
-    params.encodings = [{ maxBitrate: 2_500_000 }];
-    await sender.setParameters(params);
-
-    // Replace camera with screen
-    await sender.replaceTrack(screenTrack);
+    await replaceVideoTrack(screenTrack);
     isScreenSharingRef.current = true;
 
-    // Restore camera when user stops sharing
     screenTrack.onended = async () => {
       const cameraTrack = streamRef.current?.getVideoTracks()[0];
-      if (cameraTrack) await sender.replaceTrack(cameraTrack);
+      if (cameraTrack) await replaceVideoTrack(cameraTrack);
       isScreenSharingRef.current = false;
-
-      // cleanup
       screenStream.getTracks().forEach((t) => t.stop());
     };
   };
 
-  useEffect(() => {
-    try {
-      if (!socket) return;
-      socket.on("offer", async (offer) => {
-        if (!pcRef.current) {
-          console.warn("PC not ready yet, skipping offer");
-          return;
-        }
-
-        await pcRef.current.setRemoteDescription(
-          new RTCSessionDescription(offer),
-        );
-        if (pcRef.current.signalingState !== "have-remote-offer") {
-          return;
-        }
-        pendingICERef.current.forEach((c) => pcRef.current?.addIceCandidate(c));
-        pendingICERef.current = [];
-        const answer = await pcRef.current.createAnswer();
-        await pcRef.current.setLocalDescription(answer);
-        socket.emit("answer", { answer, meetingId });
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
-
-  useEffect(() => {
+  const startCall = () => {
     if (!socket) return;
+    const others = participants.filter(
+      (p) => p.socketId && p.socketId !== socket.id,
+    );
+    others.forEach((p) => makeOffer(p.socketId!));
+  };
 
-    socket.on("answer", async (answer) => {
-      if (!pcRef.current) return;
+  const getNameBySocketId = (id: string) => {
+    return participants.find((p) => p.socketId === id)?.name || "Remote";
+  };
 
-      await pcRef.current.setRemoteDescription(
-        new RTCSessionDescription(answer),
-      );
-
-      pendingICERef.current.forEach((c) => pcRef.current?.addIceCandidate(c));
-      pendingICERef.current = [];
-    });
-  }, [socket]);
   return (
     <>
       <div className="h-full bg-[#0b0f19] text-white">
@@ -233,22 +298,8 @@ const VideoCall = () => {
             </div>
 
             <div className="flex-1 w-full h-full overflow-hidden">
-              <div className="flex h-full w-full gap-4 px-6 pb-24 pt-16">
-                {/* Remote */}
-                <div className="relative flex-1 rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-                  <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    Remote
-                  </div>
-                  <video
-                    ref={remoteVideoRef}
-                    className="w-full h-full object-contain"
-                    autoPlay
-                    playsInline
-                  />
-                </div>
-
-                {/* You */}
-                <div className="relative w-[28%] min-w-[220px] rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 pb-24 pt-16 h-full">
+                <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
                   <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
                     You
                   </div>
@@ -260,13 +311,34 @@ const VideoCall = () => {
                     playsInline
                   />
                 </div>
+
+                {remoteStreams.map((r) => (
+                  <div
+                    key={r.socketId}
+                    className="relative rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl"
+                  >
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      {getNameBySocketId(r.socketId)}
+                    </div>
+                    <video
+                      ref={(el) => {
+                        if (el && el.srcObject !== r.stream) {
+                          el.srcObject = r.stream;
+                        }
+                      }}
+                      className="w-full h-full object-contain"
+                      autoPlay
+                      playsInline
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="sticky bottom-0 w-full bg-black/50 backdrop-blur-xl border-t border-white/10">
               <div className="mx-auto max-w-4xl px-4 py-4 flex flex-wrap items-center justify-center gap-3">
                 <button
-                  onClick={sendOffer}
+                  onClick={startCall}
                   className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition"
                 >
                   Start Call
