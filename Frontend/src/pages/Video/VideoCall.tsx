@@ -52,7 +52,6 @@ const VideoCall = () => {
     setupVideo();
   }, []);
 
-  // make sure video page also joins the room
   useEffect(() => {
     if (!socket || !user || !meetingId) return;
     socket.emit("join-room", { meetingId, name: user.name });
@@ -64,11 +63,11 @@ const VideoCall = () => {
 
   const upsertRemoteStream = (socketId: string, stream: MediaStream) => {
     setRemoteStreams((prev) => {
-      const idx = prev.findIndex((p) => p.socketId === socketId);
-      if (idx === -1) return [...prev, { socketId, stream }];
-      const copy = [...prev];
-      copy[idx] = { socketId, stream };
-      return copy;
+      const found = prev.some((p) => p.socketId === socketId);
+      if (!found) return [...prev, { socketId, stream }];
+      return prev.map((p) =>
+        p.socketId === socketId ? { socketId, stream } : p,
+      );
     });
   };
 
@@ -103,7 +102,11 @@ const VideoCall = () => {
 
     pc.onconnectionstatechange = () => {
       const state = pc.connectionState;
-      if (state === "failed" || state === "closed" || state === "disconnected") {
+      if (
+        state === "failed" ||
+        state === "closed" ||
+        state === "disconnected"
+      ) {
         removePeer(socketId);
       }
     };
@@ -127,14 +130,17 @@ const VideoCall = () => {
 
   const syncPeers = (users: any[]) => {
     if (!socket || !isReady) return;
+
     const myId = socket.id;
     const others = users.filter((u) => u.socketId && u.socketId !== myId);
-    const otherIds = new Set(others.map((u) => u.socketId));
+    const otherIds = others.map((u) => u.socketId);
 
+    // remove peers jo list me nahi hai
     Object.keys(peersRef.current).forEach((id) => {
-      if (!otherIds.has(id)) removePeer(id);
+      if (!otherIds.includes(id)) removePeer(id);
     });
 
+    // create peer + offer rule
     others.forEach((u) => {
       createPeer(u.socketId);
       if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
@@ -278,7 +284,6 @@ const VideoCall = () => {
   const getNameBySocketId = (id: string) => {
     return participants.find((p) => p.socketId === id)?.name || "Remote";
   };
-
   return (
     <>
       <div className="h-full bg-[#0b0f19] text-white">
