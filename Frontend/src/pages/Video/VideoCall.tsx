@@ -128,26 +128,27 @@ const VideoCall = () => {
     socket.emit("offer", { to: peerId, from: socket.id, offer, meetingId });
   };
 
-  const syncPeers = (users: any[]) => {
-    if (!socket || !isReady) return;
+  // peerconnection add/remove according to users in room
+    const syncPeers = (users: any[]) => {
+      if (!socket || !isReady) return;
 
-    const myId = socket.id;
-    const others = users.filter((u) => u.socketId && u.socketId !== myId);
-    const otherIds = others.map((u) => u.socketId);
+      const myId = socket.id;
+      const others = users.filter((u) => u.socketId && u.socketId !== myId);
+      const otherIds = others.map((u) => u.socketId);
 
-    // remove peers jo list me nahi hai
-    Object.keys(peersRef.current).forEach((id) => {
-      if (!otherIds.includes(id)) removePeer(id);
-    });
+      // remove peers jo list me nahi hai
+      Object.keys(peersRef.current).forEach((id) => {
+        if (!otherIds.includes(id)) removePeer(id);
+      });
 
-    // create peer + offer rule
-    others.forEach((u) => {
-      createPeer(u.socketId);
-      if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
-        makeOffer(u.socketId);
-      }
-    });
-  };
+      // create peer + offer rule
+      others.forEach((u) => {
+        createPeer(u.socketId);
+        if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
+          makeOffer(u.socketId);
+        }
+      });
+    };
 
   useEffect(() => {
     if (!socket) return;
@@ -284,6 +285,8 @@ const VideoCall = () => {
   const getNameBySocketId = (id: string) => {
     return participants.find((p) => p.socketId === id)?.name || "Remote";
   };
+
+  console.log("participants",participants)
   return (
     <>
       <div className="h-full bg-[#0b0f19] text-white">
