@@ -285,8 +285,6 @@ const VideoCall = () => {
   const getNameBySocketId = (id: string) => {
     return participants.find((p) => p.socketId === id)?.name || "Remote";
   };
-
-  console.log("participants",participants)
   return (
     <>
       <div className="h-full bg-[#0b0f19] text-white">
