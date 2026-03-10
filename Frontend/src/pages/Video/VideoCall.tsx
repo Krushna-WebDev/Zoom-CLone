@@ -51,7 +51,7 @@ const VideoCall = () => {
 
     setupVideo();
   }, []);
-
+  
   useEffect(() => {
     if (!socket || !user || !meetingId) return;
     socket.emit("join-room", { meetingId, name: user.name });
