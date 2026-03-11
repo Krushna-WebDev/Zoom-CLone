@@ -345,6 +345,7 @@ const VideoCall = () => {
               <div className="mx-auto max-w-4xl px-4 py-4 flex flex-wrap items-center justify-center gap-3">
                 <button
                   onClick={startCall}
+                  aria-label="Start call"
                   className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition"
                 >
                   Start Call
