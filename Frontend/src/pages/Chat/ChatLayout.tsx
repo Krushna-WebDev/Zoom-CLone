@@ -48,7 +48,6 @@ const ChatLayout = () => {
             <button
               type="button"
               onClick={() => setMode("video")}
-              aria-pressed={mode === "video"}
               className={`px-4 py-1 rounded-full text-sm font-medium transition ${
                 mode === "video"
                   ? "bg-white text-gray-900 shadow"
