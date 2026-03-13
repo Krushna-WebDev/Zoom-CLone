@@ -59,9 +59,23 @@ async function validateUser(socket, callback) {
 io.on("connection", async (socket) => {
   if (!(await validateUser(socket))) return;
 
+  socket.on("offer", ({ offer, to, from }) => {
+    if (!to) return;
+    io.to(to).emit("offer", { offer, from });
+  });
+
+  socket.on("answer", ({ answer, to, from }) => {
+    if (!to) return;
+    io.to(to).emit("answer", { answer, from });
+  });
+
+  socket.on("ice-candidate", ({ candidate, to, from }) => {
+    if (!to) return;
+    io.to(to).emit("ice-candidate", { candidate, from });
+  });
+
   socket.on("join-room", async ({ meetingId, name }) => {
     try {
-
       if (!(await validateUser(socket))) return;
 
       const meeting = await Meeting.findOne({ MeetingId: meetingId });
@@ -74,7 +88,11 @@ io.on("connection", async (socket) => {
         roomUser[meetingId] = [];
       }
 
-      if (roomUser[meetingId].length >= 4) {
+      const alreadyInRoom = roomUser[meetingId].some(
+        (u) => u.socketId === socket.id,
+      );
+
+      if (!alreadyInRoom && roomUser[meetingId].length >= 3) {
         return;
       }
 
@@ -117,29 +135,11 @@ io.on("connection", async (socket) => {
         user: name,
       });
 
-      socket.on("offer", ({ offer, meetingId, to, from }) => {
-        if (!to) return;
-        io.to(to).emit("offer", { offer, from });
-      });
-
-      socket.on("answer", ({ answer, meetingId, to, from }) => {
-        if (!to) return;
-        io.to(to).emit("answer", { answer, from });
-      });
-
-      socket.on("ice-candidate", ({ candidate, meetingId, to, from }) => {
-        if (!to) return;
-        io.to(to).emit("ice-candidate", { candidate, from });
-      });
-
       if (deleteRoom[meetingId]) {
         clearTimeout(deleteRoom[meetingId]);
         delete deleteRoom[meetingId];
       }
-      // Atomic check and add to prevent duplicates
-      const exists = roomUser[meetingId].some(
-        (u) => u.userId === socket.userId,
-      );
+      const exists = roomUser[meetingId].some((u) => u.socketId === socket.id);
 
       if (!exists) {
         roomUser[meetingId].push({

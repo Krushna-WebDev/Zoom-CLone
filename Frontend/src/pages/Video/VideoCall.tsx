@@ -1,17 +1,18 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../../../Context/SocketContext";
 import { UserContext } from "../../../Context/Context";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-// simple 4-person mesh (max 4 including you)
+// simple 3-person mesh (max 3 including you)
 const VideoCall = () => {
   const socket = useContext(SocketContext);
   const { user } = useContext(UserContext)!;
   const { meetingId } = useParams();
-
+  const navigate = useNavigate();
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isScreenSharingRef = useRef(false);
+  const joinedRoomRef = useRef<string | null>(null);
 
   const peersRef = useRef<Record<string, RTCPeerConnection>>({});
   const pendingICERef = useRef<Record<string, RTCIceCandidateInit[]>>({});
@@ -51,16 +52,26 @@ const VideoCall = () => {
 
     setupVideo();
   }, []);
-  
+
   useEffect(() => {
-    if (!socket || !user || !meetingId) return;
-    socket.emit("join-room", { meetingId, name: user.name });
+    if (localVideoRef.current && streamRef.current) {
+      localVideoRef.current.srcObject = streamRef.current;
+    }
+  }, [remoteStreams.length]);
 
+  const leaveRoom = () => {
+    if (!socket) return;
+    socket.emit("leave-room", meetingId);
+  };
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("left-room-success", () => {
+      navigate("/");
+    });
     return () => {
-      socket.emit("leave-room", meetingId);
+      socket.off("left-room-success");
     };
-  }, [socket, user, meetingId]);
-
+  }, []);
   const upsertRemoteStream = (socketId: string, stream: MediaStream) => {
     setRemoteStreams((prev) => {
       const found = prev.some((p) => p.socketId === socketId);
@@ -129,26 +140,31 @@ const VideoCall = () => {
   };
 
   // peerconnection add/remove according to users in room
-    const syncPeers = (users: any[]) => {
-      if (!socket || !isReady) return;
+  const syncPeers = (users: any[]) => {
+    if (!socket || !isReady) return;
 
-      const myId = socket.id;
-      const others = users.filter((u) => u.socketId && u.socketId !== myId);
-      const otherIds = others.map((u) => u.socketId);
+    const myId = socket.id;
+    const others = users.filter((u) => u.socketId && u.socketId !== myId);
+    const otherIds = others.map((u) => u.socketId);
 
-      // remove peers jo list me nahi hai
-      Object.keys(peersRef.current).forEach((id) => {
-        if (!otherIds.includes(id)) removePeer(id);
-      });
+    // remove peers jo list me nahi hai
+    Object.keys(peersRef.current).forEach((id) => {
+      if (!otherIds.includes(id)) removePeer(id);
+    });
 
-      // create peer + offer rule
-      others.forEach((u) => {
-        createPeer(u.socketId);
-        if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
-          makeOffer(u.socketId);
-        }
-      });
-    };
+    // create peer + offer rule
+    others.forEach((u) => {
+      createPeer(u.socketId);
+      if (myId && myId > u.socketId && !offeredRef.current[u.socketId]) {
+        makeOffer(u.socketId);
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!isReady || participants.length === 0) return;
+    syncPeers(participants);
+  }, [isReady, participants]);
 
   useEffect(() => {
     if (!socket) return;
@@ -206,6 +222,11 @@ const VideoCall = () => {
     socket.on("answer", handleAnswer);
     socket.on("ice-candidate", handleIce);
 
+    if (user && meetingId && joinedRoomRef.current !== meetingId) {
+      joinedRoomRef.current = meetingId;
+      socket.emit("join-room", { meetingId, name: user.name });
+    }
+
     return () => {
       socket.off("Connected-Users", handleUsers);
       socket.off("userLeft", handleUserLeft);
@@ -213,7 +234,7 @@ const VideoCall = () => {
       socket.off("answer", handleAnswer);
       socket.off("ice-candidate", handleIce);
     };
-  }, [socket, isReady]);
+  }, [socket, user, meetingId]);
 
   const getCameraVideoTrack = () => {
     return streamRef.current?.getVideoTracks()[0];
@@ -285,6 +306,106 @@ const VideoCall = () => {
   const getNameBySocketId = (id: string) => {
     return participants.find((p) => p.socketId === id)?.name || "Remote";
   };
+
+  const remoteTiles = remoteStreams.map((streamItem) => ({
+    id: streamItem.socketId,
+    label: getNameBySocketId(streamItem.socketId),
+    isLocal: false,
+    stream: streamItem.stream,
+  }));
+
+  const mainTiles =
+    remoteTiles.length > 0
+      ? remoteTiles
+      : [
+          {
+            id: "waiting-remote",
+            label: "Waiting",
+            isLocal: false,
+            stream: null,
+          },
+        ];
+
+  const localTile = {
+    id: "local-user",
+    label: "You",
+    isLocal: true,
+    stream: null,
+  };
+
+  const visibleMainTiles = mainTiles.slice(0, 2);
+  const emptySlots = Math.max(0, 2 - remoteTiles.length);
+
+  const renderRemoteTile = (tile: {
+    id: string;
+    label: string;
+    stream: MediaStream | null;
+  }) => {
+    if (!tile.stream) {
+      return (
+        <div className="relative h-full w-full overflow-hidden rounded-[28px] border border-dashed border-white/10 bg-white/[0.04]">
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-white/55">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl">
+              ...
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white/70">
+                Waiting for others
+              </p>
+              <p className="text-xs">Remote videos will appear here</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="group relative h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(21,30,48,0.92),rgba(7,11,19,0.96))] shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(72,187,120,0.16),transparent_35%)] opacity-80" />
+        <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
+          <div className="rounded-full bg-black/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            {tile.label}
+          </div>
+          <div className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur">
+            Live
+          </div>
+        </div>
+        <video
+          ref={(el) => {
+            if (el && el.srcObject !== tile.stream) {
+              el.srcObject = tile.stream;
+            }
+          }}
+          className="h-full w-full object-cover"
+          autoPlay
+          playsInline
+        />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
+      </div>
+    );
+  };
+
+  const localPreview = (
+    <div className="relative h-full w-full overflow-hidden rounded-[24px] border border-white/15 bg-[linear-gradient(180deg,rgba(21,30,48,0.95),rgba(7,11,19,0.98))] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(72,187,120,0.16),transparent_35%)] opacity-80" />
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3">
+        <div className="rounded-full bg-black/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+          {localTile.label}
+        </div>
+        <div className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur">
+          Camera
+        </div>
+      </div>
+      <video
+        ref={localVideoRef}
+        className="h-full w-full object-cover scale-x-[-1]"
+        autoPlay
+        muted
+        playsInline
+      />
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
+    </div>
+  );
   return (
     <>
       <div className="h-full bg-[#0b0f19] text-white">
@@ -304,40 +425,42 @@ const VideoCall = () => {
             </div>
 
             <div className="flex-1 w-full h-full overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 pb-24 pt-16 h-full">
-                <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-                  <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    You
-                  </div>
-                  <video
-                    ref={localVideoRef}
-                    className="w-full h-full object-cover scale-x-[-1]"
-                    autoPlay
-                    muted
-                    playsInline
-                  />
-                </div>
-
-                {remoteStreams.map((r) => (
-                  <div
-                    key={r.socketId}
-                    className="relative rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl"
-                  >
-                    <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      {getNameBySocketId(r.socketId)}
+              <div className="h-full px-6 pb-24 pt-16">
+                <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-4">
+                  {remoteTiles.length <= 1 && (
+                    <div className="relative min-h-0 flex-1">
+                      <div className="h-full min-h-[320px]">
+                        {renderRemoteTile(visibleMainTiles[0])}
+                      </div>
+                      <div className="absolute bottom-5 right-5 z-20 h-24 w-40 sm:h-28 sm:w-48">
+                        {localPreview}
+                      </div>
                     </div>
-                    <video
-                      ref={(el) => {
-                        if (el && el.srcObject !== r.stream) {
-                          el.srcObject = r.stream;
-                        }
-                      }}
-                      className="w-full h-full object-contain"
-                      autoPlay
-                      playsInline
-                    />
-                  </div>
-                ))}
+                  )}
+
+                  {remoteTiles.length === 2 && (
+                    <>
+                      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+                        {visibleMainTiles.map((tile) => (
+                          <div key={tile.id} className="h-full min-h-[280px]">
+                            {renderRemoteTile(tile)}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-center">
+                        <div className="h-24 w-40">{localPreview}</div>
+                      </div>
+                    </>
+                  )}
+
+                  {remoteTiles.length >= 1 && emptySlots > 0 && (
+                    <div className="hidden">
+                      {Array.from({ length: emptySlots }).map((_, idx) => (
+                        <span key={`empty-slot-${idx}`} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -425,6 +548,13 @@ const VideoCall = () => {
                     <path d="M16 14l2 2" />
                   </svg>
                   End Call
+                </button>
+                <button
+                  onClick={leaveRoom}
+                  type="button"
+                  className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition"
+                >
+                  Leave Room
                 </button>
               </div>
             </div>

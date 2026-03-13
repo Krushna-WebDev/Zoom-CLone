@@ -86,14 +86,6 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     };
   }, [meetingId, user, socket]);
 
-  // todo use of role to send offer
-
-  // useEffect(() => {
-  //   socket.on("role", ({ isCaller }) => {
-  //     console.log("caller", isCaller);
-  //   });
-  // }, [socket]);
-
   // Leave confirmation → redirect
   useEffect(() => {
     if (!socket) return;
