@@ -366,9 +366,6 @@ const VideoCall = () => {
           <div className="rounded-full bg-black/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
             {tile.label}
           </div>
-          <div className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur">
-            Live
-          </div>
         </div>
         <video
           ref={(el) => {
@@ -413,26 +410,16 @@ const VideoCall = () => {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#1c2333_0%,#0b0f19_55%,#090c14_100%)]" />
 
           <div className="relative flex flex-col h-full min-h-full">
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between px-6 pt-6">
-              <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
-                Live
-              </div>
-              <div className="pointer-events-auto rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-                Room: {meetingId} • {participants.length} participant
-                {participants.length === 1 ? "" : "s"}
-              </div>
-            </div>
 
             <div className="flex-1 w-full h-full overflow-hidden">
-              <div className="h-full px-6 pb-24 pt-16">
-                <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-4">
+              <div className="h-full px-3 pb-32 pt-20 sm:px-6 sm:pb-24 sm:pt-16">
+                <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3 sm:gap-4">
                   {remoteTiles.length <= 1 && (
                     <div className="relative min-h-0 flex-1">
-                      <div className="h-full min-h-[320px]">
+                      <div className="h-full min-h-[260px] sm:min-h-[320px]">
                         {renderRemoteTile(visibleMainTiles[0])}
                       </div>
-                      <div className="absolute bottom-5 right-5 z-20 h-24 w-40 sm:h-28 sm:w-48">
+                      <div className="absolute bottom-3 right-3 z-20 h-20 w-28 sm:bottom-5 sm:right-5 sm:h-28 sm:w-48">
                         {localPreview}
                       </div>
                     </div>
@@ -440,15 +427,15 @@ const VideoCall = () => {
 
                   {remoteTiles.length === 2 && (
                     <>
-                      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
                         {visibleMainTiles.map((tile) => (
-                          <div key={tile.id} className="h-full min-h-[280px]">
+                            <div key={tile.id} className="h-full min-h-[220px] sm:min-h-[280px]">
                             {renderRemoteTile(tile)}
                           </div>
                         ))}
                       </div>
                       <div className="flex justify-center">
-                        <div className="h-24 w-40">{localPreview}</div>
+                        <div className="h-20 w-28 sm:h-24 sm:w-40">{localPreview}</div>
                       </div>
                     </>
                   )}
@@ -464,18 +451,18 @@ const VideoCall = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 w-full bg-black/50 backdrop-blur-xl border-t border-white/10">
-              <div className="mx-auto max-w-4xl px-4 py-4 flex flex-wrap items-center justify-center gap-3">
+            <div className="sticky bottom-0 w-full border-t border-white/10 bg-black/60 backdrop-blur-xl">
+              <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4">
                 <button
                   onClick={startCall}
                   aria-label="Start call"
-                  className="rounded-full bg-emerald-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition"
+                  className="rounded-full bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-600 sm:px-6 sm:text-sm"
                 >
                   Start Call
                 </button>
                 <button
                   onClick={toggleAudio}
-                  className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-5 sm:text-sm"
                 >
                   <svg
                     className="h-4 w-4"
@@ -495,7 +482,7 @@ const VideoCall = () => {
                 </button>
                 <button
                   onClick={screenshare}
-                  className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-5 sm:text-sm"
                 >
                   <svg
                     className="h-4 w-4"
@@ -514,7 +501,7 @@ const VideoCall = () => {
                 </button>
                 <button
                   onClick={toggleVideo}
-                  className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-5 sm:text-sm"
                 >
                   <svg
                     className="h-4 w-4"
@@ -532,7 +519,7 @@ const VideoCall = () => {
                 </button>
                 <button
                   onClick={endCall}
-                  className="rounded-full bg-red-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-500/20 hover:bg-red-600 transition inline-flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 sm:px-6 sm:text-sm"
                 >
                   <svg
                     className="h-4 w-4"
@@ -552,7 +539,7 @@ const VideoCall = () => {
                 <button
                   onClick={leaveRoom}
                   type="button"
-                  className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition"
+                  className="rounded-full bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-5 sm:text-sm"
                 >
                   Leave Room
                 </button>
@@ -566,3 +553,6 @@ const VideoCall = () => {
 };
 
 export default VideoCall;
+
+
+

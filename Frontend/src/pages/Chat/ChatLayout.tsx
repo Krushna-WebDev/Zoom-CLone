@@ -16,6 +16,7 @@ const ChatLayout = () => {
   const [participants, setparticipants] = useState<Participant[]>([]);
   const { token, isLoading } = useContext(UserContext)!;
   const [mode, setMode] = useState<"chat" | "video">("chat");
+  const [showParticipants, setShowParticipants] = useState(false);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -28,35 +29,45 @@ const ChatLayout = () => {
       {mode === "chat" && <ChatNavbar />}
 
       {mode === "chat" && (
-        <div className="flex items-center gap-4 px-6 py-4 border-b bg-white flex-shrink-0">
-          <div className="text-sm font-medium text-gray-700">View</div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-4 sm:px-6 flex-shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium text-gray-700">View</div>
 
-          <div className="inline-flex bg-gray-200 rounded-full p-1">
-            <button
-              type="button"
-              onClick={() => setMode("chat")}
-              aria-pressed={mode === "chat"}
-              className={`px-4 py-1 rounded-full text-sm font-medium transition ${
-                mode === "chat"
-                  ? "bg-white text-gray-900 shadow"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Chat
-            </button>
+            <div className="inline-flex bg-gray-200 rounded-full p-1">
+              <button
+                type="button"
+                onClick={() => setMode("chat")}
+                aria-pressed={mode === "chat"}
+                className={`px-4 py-1 rounded-full text-sm font-medium transition ${
+                  mode === "chat"
+                    ? "bg-white text-gray-900 shadow"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Chat
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setMode("video")}
-              className={`px-4 py-1 rounded-full text-sm font-medium transition ${
-                mode === "video"
-                  ? "bg-white text-gray-900 shadow"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Video
-            </button>
+              <button
+                type="button"
+                onClick={() => setMode("video")}
+                className={`px-4 py-1 rounded-full text-sm font-medium transition ${
+                  mode === "video"
+                    ? "bg-white text-gray-900 shadow"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Video
+              </button>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowParticipants((prev) => !prev)}
+            className="inline-flex items-center rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 lg:hidden"
+          >
+            {showParticipants ? "Hide People" : "Show People"}
+          </button>
         </div>
       )}
 
@@ -66,7 +77,7 @@ const ChatLayout = () => {
         }`}
       >
         {mode === "video" && (
-          <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full bg-white/10 p-1 text-xs font-semibold text-white backdrop-blur">
+          <div className="absolute left-3 top-2 z-20 flex items-center gap-2 rounded-full bg-white/10 p-1 text-xs font-semibold text-white backdrop-blur sm:left-4 sm:top-4">
             <button
               type="button"
               onClick={() => setMode("chat")}
@@ -85,12 +96,20 @@ const ChatLayout = () => {
           </div>
         )}
         {mode === "chat" && (
-          <div className="w-70 flex-shrink-0 overflow-hidden">
+          <div
+            className={`${
+              showParticipants ? "flex" : "hidden"
+            } absolute inset-0 z-10 bg-white lg:static lg:z-0 lg:flex lg:w-70 lg:flex-shrink-0 lg:overflow-hidden`}
+          >
             <Sidebar participants={participants} />
           </div>
         )}
 
-        <div className="flex-1 overflow-hidden">
+        <div
+          className={`flex-1 overflow-hidden ${
+            mode === "chat" && showParticipants ? "hidden lg:block" : ""
+          }`}
+        >
           {mode === "chat" ? (
             <ChatArea
               participants={participants}

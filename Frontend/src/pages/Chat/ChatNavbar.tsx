@@ -12,35 +12,44 @@ export const ChatNavbar = () => {
   };
 
   return (
-    <nav className="h-16 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-500 border-b border-blue-700 flex items-center justify-between px-6 shadow-lg">
-      <div className="flex  gap-4">
+    <nav className="border-b border-blue-700 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-500 shadow-lg">
+      <div className="flex flex-col gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:flex-row lg:items-center lg:justify-between">
         <Link
           to="/"
-          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+          className="flex items-center gap-3 transition-opacity hover:opacity-90"
         >
           <img
-            className="w-10 h-10"
+            className="h-10 w-10 rounded-xl object-cover shadow-sm"
             src="/public/logo.png"
             alt="Chattique Logo"
           />
-          <h1 className="text-2xl font-poppins font-bold text-white uppercase">
-            Chattique
-          </h1>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-100/80">
+              Meeting Space
+            </p>
+            <h1 className="truncate text-xl font-poppins font-bold uppercase text-white sm:text-2xl">
+              Chattique
+            </h1>
+          </div>
         </Link>
-      </div>
-      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
-        <span className="font-mono text-sm font-semibold text-white">
-          Room:
-        </span>
-        <span className="font-mono text-sm font-semibold text-white">
-          {meetingId}
-        </span>
+
         <button
+          type="button"
           onClick={copyRoomId}
-          className="ml-2 px-2 py-1 text-xs bg-white/20 hover:bg-white/30 rounded transition-all text-white"
           title="Copy Room ID"
+          className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-left backdrop-blur-sm transition-all hover:bg-white/15 sm:px-4"
         >
-          {copied ? "✓ Copied" : "Copy"}
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-100/80">
+              Room Id
+            </p>
+            <p className="truncate font-mono text-xs font-semibold text-white sm:text-sm">
+              {meetingId}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-xl bg-white/20 px-3 py-2 text-xs font-semibold text-white">
+            {copied ? "Copied" : "Copy"}
+          </span>
         </button>
       </div>
     </nav>

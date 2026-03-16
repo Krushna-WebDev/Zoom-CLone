@@ -8,6 +8,7 @@ const Navbar = () => {
   const { user, setUser, token, setToken } = useContext(UserContext)!;
   const { setLoginModel } = useContext(ModalContext)!;
   const [open, setopen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const logout = async () => {
     try {
@@ -25,19 +26,20 @@ const Navbar = () => {
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white/20 backdrop-blur-md border-b border-white/20 shadow-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex justify-between items-center">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4">
+        <div className="flex items-center justify-between gap-4">
         {/* Logo */}
         <Link
           to="/"
           className="flex items-center gap-3 hover:opacity-90 transition-opacity"
         >
-          <img className="w-10 h-10" src="logo.png" alt="Chattique Logo" />
-          <h1 className="text-2xl font-poppins font-bold text-gray-800 uppercase">
+          <img className="w-9 h-9 sm:w-10 sm:h-10" src="logo.png" alt="Chattique Logo" />
+          <h1 className="text-xl sm:text-2xl font-poppins font-bold text-gray-800 uppercase">
             Chattique
           </h1>
         </Link>
 
-        <nav className="flex gap-4 sm:gap-6">
+        <nav className="hidden md:flex gap-4 sm:gap-6">
           <Link
             to="/"
             className="relative px-3 py-2 rounded-2xl font-raleway text-gray-700 hover:text-gray-900 transition-colors
@@ -66,14 +68,36 @@ const Navbar = () => {
           </Link>
         </nav>
 
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="md:hidden inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white/70 p-2 text-gray-700 shadow-sm"
+            aria-label="Toggle navigation menu"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+              />
+            </svg>
+          </button>
+
         {user ? (
           <div className="relative flex items-center gap-4">
             {/* User Trigger Button */}
             <button
               onClick={() => setopen(!open)}
               className="group flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3 shadow-sm transition-all hover:border-orange-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-            >
-              <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
+              >
+                <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white">
                 <img
                   src={user?.profilePic || "/defaultProfile.jpg"}
                   alt={user?.name}
@@ -81,7 +105,7 @@ const Navbar = () => {
                 />
               </div>
 
-              <span className="max-w-[100px] truncate text-sm font-semibold text-gray-700">
+              <span className="hidden sm:block max-w-[100px] truncate text-sm font-semibold text-gray-700">
                 {user.name}
               </span>
 
@@ -159,12 +183,35 @@ const Navbar = () => {
         ) : (
           <button
             onClick={() => setLoginModel(true)}
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-0.5 font-medium text-white shadow-lg transition-all hover:text-white focus:outline-none focus:ring-4 focus:ring-orange-300 group-hover:from-orange-600 group-hover:to-orange-700"
+            className="group relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-0.5 text-sm font-medium text-white shadow-lg transition-all hover:text-white focus:outline-none focus:ring-4 focus:ring-orange-300 group-hover:from-orange-600 group-hover:to-orange-700 sm:text-base"
           >
-            <span className="relative rounded-md bg-opacity-0 px-6 py-2 transition-all duration-75 ease-in group-hover:bg-opacity-0">
+            <span className="relative rounded-md bg-opacity-0 px-4 py-2 transition-all duration-75 ease-in group-hover:bg-opacity-0 sm:px-6">
               Login
             </span>
           </button>
+        )}
+        </div>
+      </div>
+
+        {mobileMenuOpen && (
+          <div className="mt-3 rounded-2xl border border-white/40 bg-white/80 p-2 shadow-lg backdrop-blur md:hidden">
+            <nav className="flex flex-col">
+              {[
+                { to: "/", label: "Home" },
+                { to: "/about", label: "About" },
+                { to: "/features", label: "Features" },
+              ].map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         )}
       </div>
     </header>

@@ -105,41 +105,51 @@ const Hero = () => {
           backgroundPosition: "center",
           filter: "brightness(0.90)",
         }}
-        className="pt-20 relative"
+        className="relative overflow-hidden pt-20"
       >
         <div className="absolute inset-0 bg-white/40 backdrop-blur-sm z-0"></div>
-        <div className="relative z-10 mx-auto max-w-7xl px-4 flex w-full  items-center ">
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center gap-10 px-4 py-10 sm:px-6 md:flex-row md:py-16">
           {/* left side text */}
-          <div className="w-full m-1">
-            <h1 className="text-6xl font-raleway">
-              <span className=" pr-5 bg-clip-text text-transparent bg-gradient-to-r from-[#B29FD9] to-[#F97316]">
+          <div className="w-full m-1 text-center md:text-left">
+            <h1 className="font-raleway text-4xl leading-tight sm:text-5xl lg:text-6xl">
+              <span className="bg-clip-text pr-3 text-transparent bg-gradient-to-r from-[#B29FD9] to-[#F97316] sm:pr-5">
                 Say Hi!
               </span>
               To Your Friend & Family
             </h1>
-            <p className="font-poppins font-semibold mt-8 mr-30 text-gray-600">
+            <p className="mt-6 max-w-2xl font-poppins text-sm font-semibold leading-7 text-gray-600 sm:mt-8 sm:text-base md:mr-10">
               Talk. Share. Hang Out. Stay connected with friends, family, or
               your team anytime, anywhere. Our platform makes video calls
               effortless with smooth, high-quality video, crystal-clear audio,
               and easy screen sharing.
             </p>
-            <div className="flex items-center mt-10 gap-5">
+            <div className="mt-8 flex flex-col items-stretch gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 md:justify-start">
               <button
                 onClick={() =>
                   user ? setJoinMeetingModal(true) : setRequireLoginModal(true)
                 }
-                className="bg-orange-500 text-white font-raleway px-3 py-2 rounded"
+                className="rounded-xl bg-orange-500 px-5 py-3 text-white font-raleway font-semibold shadow-sm transition hover:bg-orange-600"
               >
                 Start Chat
               </button>
-              <button className="bg-orange-500 text-white font-raleway px-3 py-2 rounded">
+              <button
+                onClick={() =>
+                  user ? setJoinMeetingModal(true) : setRequireLoginModal(true)
+                }
+                className="rounded-xl border border-orange-200 bg-white/80 px-5 py-3 text-orange-600 font-raleway font-semibold shadow-sm transition hover:bg-orange-50"
+              >
                 Start Video Call
               </button>
-              <button onClick={() => setTestModel(true)}>TestModel</button>
+              <button
+                onClick={() => setTestModel(true)}
+                className="rounded-xl border border-gray-200 bg-white/70 px-5 py-3 text-gray-700 font-medium shadow-sm transition hover:bg-white"
+              >
+                TestModel
+              </button>
             </div>
           </div>
           {/* img right side */}
-          <div className="w-full relative hidden md:block ">
+          <div className="relative hidden w-full md:block">
             <img
               src="chatting Lady.png"
               alt="chatting lady"
@@ -147,10 +157,10 @@ const Hero = () => {
             />
             <img
               src="image 10.png"
-              className="absolute bottom-0 w-30 right-20 z-10  object-contain"
+              className="absolute bottom-0 right-12 z-10 w-24 object-contain lg:right-20 lg:w-30"
               alt="overlay"
             />
-            <div className="absolute bottom-44 left-40 z-30 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4 backdrop-blur-sm">
+            <div className="absolute bottom-40 left-16 z-30 flex items-center gap-4 rounded-xl bg-white px-4 py-2 shadow-md backdrop-blur-sm lg:bottom-44 lg:left-40">
               <img
                 src="/pfp2.jpeg"
                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
@@ -161,7 +171,7 @@ const Hero = () => {
                 <p className="text-gray-600 text-sm">Hello!!</p>
               </div>
             </div>
-            <div className="absolute bottom-20 left-10 z-30 bg-white shadow-md rounded-xl px-4 py-2 flex items-center gap-4 backdrop-blur-sm">
+            <div className="absolute bottom-14 left-4 z-30 flex items-center gap-4 rounded-xl bg-white px-4 py-2 shadow-md backdrop-blur-sm lg:bottom-20 lg:left-10">
               <img
                 src="/pfp1.jpeg"
                 className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"

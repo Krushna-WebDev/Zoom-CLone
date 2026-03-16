@@ -37,16 +37,21 @@ const featureData: FeatureInterface[] = [
 const Features = () => {
   return (
     <>
-      <div className="mx-auto max-w-7xl mt-25 ">
-        <h1 className="uppercase text-cyan-600 tracking-wider font-semibold text-center">Features</h1>
-        <h1 className="text-center font-raleway text-5xl my-5">
-         Everything You Need to <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Connect</span> 
+      <div className="mx-auto mt-20 max-w-7xl px-4 sm:px-6 lg:mt-25">
+        <h1 className="text-center text-sm font-semibold uppercase tracking-wider text-cyan-600">
+          Features
         </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-10 justify-items-center">
+        <h1 className="my-4 text-center font-raleway text-3xl sm:text-4xl lg:text-5xl">
+         Everything You Need to <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Connect</span>
+        </h1>
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {featureData.map((feature) => (
-            <div className="flex gap-4 items-center bg-gray-100 rounded-2xl p-8 w-full shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto">
+            <div
+              key={feature.title}
+              className="mx-auto flex w-full max-w-md items-start gap-4 rounded-2xl bg-gray-100 p-6 shadow-lg transition-all duration-300 hover:shadow-xl sm:p-8"
+            >
               <div
-                className={`${feature.bgcolor} rounded-full p-4 w-16 h-16 flex items-center justify-center hover:bg-orange-300 transition-all duration-300`}
+                className={`${feature.bgcolor} flex h-14 w-14 shrink-0 items-center justify-center rounded-full p-4 transition-all duration-300 hover:bg-orange-300 sm:h-16 sm:w-16`}
               >
                 <feature.icon className={`${feature.iconColor} text-3xl`} />
               </div>

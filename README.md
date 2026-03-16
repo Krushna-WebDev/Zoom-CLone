@@ -1,131 +1,201 @@
-﻿# Chattique - Real-Time Chat and Video Calling App
+# Chattique
 
-A Zoom-inspired real-time chat and video calling application built using React, Node.js, Socket.IO, and WebRTC.
+Chattique is a real-time meeting and chat app inspired by Zoom-style rooms. It lets users create or join a room, chat live with participants, and switch into a WebRTC video call inside the same meeting flow.
 
----
+The project currently supports room chat, authentication, participant tracking, and small-group video calling with screen share and media controls.
 
-## Project Status
-Active Development (Work in Progress)
+## Current Status
 
-Core functionality is implemented and working.
-UI refinements, performance optimizations, and scalability improvements are currently in progress.
+This project is still in active development.
 
----
+What is working now:
+- user signup and login
+- Google sign-in
+- JWT auth with refresh flow
+- create and join meeting rooms
+- real-time group chat with Socket.IO
+- participant list in the room
+- WebRTC video call for up to 3 total users
+- mute, camera toggle, and screen sharing
+
+What is still improving:
+- video-call stability and performance
+- chat and meeting UI polish
+- better handling for reconnect/rejoin edge cases
+- testing and production hardening
 
 ## Tech Stack
-Frontend
-- Vite
+
+Frontend:
 - React
 - TypeScript
+- Vite
 - Tailwind CSS
 - React Router
 - Axios
+- Socket.IO Client
 
-Backend
+Backend:
 - Node.js
 - Express
+- MongoDB
+- Mongoose
 - Socket.IO
-- MongoDB + Mongoose
+- JWT
 - Nodemailer
 - Zod
 
-Realtime Communication
-- Socket.IO (Signaling + Real-time Chat)
-- WebRTC (Peer-to-Peer Mesh for Video/Audio)
+Realtime:
+- Socket.IO for room events and chat
+- WebRTC mesh for peer-to-peer video/audio
 
-Authentication
-- Email and Password
-- Google OAuth
-- JWT (Access Token + Refresh Token via HTTP-only cookies)
+## Main Features
 
----
+### Authentication
+- signup with email/password
+- login and logout
+- Google authentication
+- refresh token based auth flow
 
-## Current Features
-Authentication
-- User registration
-- User login and logout
-- Google OAuth integration
-- Secure token-based authentication with refresh flow
+### Meeting Rooms
+- create a meeting room
+- join an existing room using meeting id
+- live participant updates
+- room-based chat and video flow
 
-Meetings
-- Create meeting rooms
-- Join meeting rooms
-- Live participant list
+### Chat
+- instant messaging inside a room
+- join and leave activity messages
+- recent messages fetched from backend
 
-Chat
-- Real-time messaging using Socket.IO
-- Room-based communication
+### Video Call
+- video/audio call inside the room
+- max 3 users in one video room
+- screen sharing
+- mute / unmute
+- camera on / off
+- leave room from video view
 
-Video Calling
-- Peer-to-peer WebRTC video and audio calls
-- Screen sharing
-- Mic toggle
-- Camera toggle
+## Project Structure
 
-Pages Implemented
-- Home
-- About
-- Features
-- Settings
-- History
-- Chat and Video Room
-
----
-
-## In Progress / Planned Improvements
-- UI/UX refinements
-- Improved error handling and edge case management
-- Performance optimization for multiple participants
-- Better meeting history persistence
-- Load last messages when joining a room
-- Production-ready deployment configuration
-
----
-
-## Local Development Setup
-1. Clone the repository
-```bash
-git clone https://github.com/Krushna-WebDev/Zoom-CLone.git
-cd chattique
+```text
+Zoom Clone/
+├── Backend/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Model/
+│   ├── Routes/
+│   ├── config/
+│   └── app.js
+├── Frontend/
+│   ├── Context/
+│   ├── public/
+│   └── src/
+│       └── pages/
+│           ├── Chat/
+│           └── Video/
+└── README.md
 ```
 
-2. Frontend setup
+## Routes
+
+Current frontend routes:
+- `/`
+- `/signup`
+- `/history`
+- `/settings`
+- `/about`
+- `/features`
+- `/bug-report`
+- `/notfound`
+- `/chatarea/:meetingId`
+
+## Local Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Krushna-WebDev/Zoom-CLone.git
+cd "Zoom Clone"
+```
+
+### 2. Install frontend dependencies
+
 ```bash
 cd Frontend
 npm install
 npm run dev
 ```
 
-3. Backend setup
+### 3. Install backend dependencies
+
+Open a second terminal:
+
 ```bash
 cd Backend
 npm install
 npm run start
 ```
 
----
+Frontend runs on:
+- `http://localhost:5173`
+
+Backend runs on:
+- `http://localhost:5000`
 
 ## Environment Variables
-Create the following files with your own values.
 
-Backend `.env`
-- PORT
-- MONGODB_URI
-- JWT_SECRET
-- ACCESS_TOKEN_SECRET
-- REFRESH_TOKEN_SECRET
-- GOOGLE_CLIENT_ID
-- GOOGLE_CLIENT_SECRET
-- EMAIL_USER
-- EMAIL_PASSWORD
+### Backend `.env`
 
-Frontend `.env`
-- VITE_GOOGLE_CLIENT_ID
+Set these values in `Backend/.env`:
 
----
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+ACCESS_TOKEN_SECRET=your_access_token_secret
+REFRESH_TOKEN_SECRET=your_refresh_token_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+EMAIL_USER=your_email
+EMAIL_PASSWORD=your_email_app_password
+```
+
+### Frontend `.env`
+
+Set this value in `Frontend/.env`:
+
+```env
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+## Scripts
+
+Frontend:
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
+
+Backend:
+
+```bash
+npm run start
+```
 
 ## Notes
-- Currently optimized for small group P2P mesh calls (1-4 participants recommended).
-- For large-scale production usage, an SFU-based architecture would be required.
-- Best tested in modern Chromium-based browsers.
-- Do not commit `.env` files. Rotate secrets if they were ever committed.
+
+- Video calling currently uses a mesh architecture, so each user connects directly with the others.
+- Because of that, performance can drop as participant count increases.
+- The room video limit is currently set to 3 total users to keep the experience more stable.
+
+## Future Improvements
+
+- stronger reconnect and call recovery
+- better responsive layouts for chat and video
+- meeting moderation controls
+- call quality optimization
+- proper loading, error, and empty states across the app
+- deployment configuration

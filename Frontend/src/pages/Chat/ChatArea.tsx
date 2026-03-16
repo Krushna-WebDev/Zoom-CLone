@@ -40,18 +40,23 @@ interface recentMsfinterface {
 }
 
 type Message = joinMsg | leaveMsg | ChatMsg;
-const ChatArea = ({ setparticipants }: ChatAreaProps) => {
+const ChatArea = ({ participants, setparticipants }: ChatAreaProps) => {
   const navigate = useNavigate();
   const { meetingId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [Newtext, setNewtext] = useState("");
   const inputref = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { user, setIsCaller, token } = useContext(UserContext)!;
   const socket = useContext(SocketContext)!;
 
   useEffect(() => {
     inputref.current?.focus();
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   // Join room + listeners
   useEffect(() => {
@@ -127,17 +132,20 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
     }
   }, [meetingId, token]);
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#f8fbff_0%,#eef4ff_100%)]">
+    
+
+      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-5">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 sm:gap-4">
         {messages.map((msg, idx) => {
           if (msg.type === "join") {
             const m = msg as joinMsg;
             return (
               <div
                 key={`join-${idx}`}
-                className="flex justify-center w-full my-3"
+                className="flex w-full justify-center"
               >
-                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full shadow-sm">
+                <div className="flex max-w-full items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-center shadow-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -154,8 +162,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
                     <line x1="23" y1="11" x2="17" y2="11" />
                   </svg>
 
-                  <span className="text-xs text-emerald-800">
-                    <span className="font-bold mr-1">{m.user}</span>
+                  <span className="text-xs font-medium text-emerald-800">
+                    <span className="mr-1 font-bold">{m.user}</span>
                     joined the room
                   </span>
                 </div>
@@ -166,9 +174,9 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
             return (
               <div
                 key={`leave-${idx}`}
-                className="flex justify-center w-full my-3 opacity-80"
+                className="flex w-full justify-center opacity-90"
               >
-                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-200 rounded-full">
+                <div className="flex max-w-full items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-center shadow-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -184,8 +192,8 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
                     <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
 
-                  <span className="text-xs text-rose-800">
-                    <span className="font-bold mr-1">{m.user}</span>
+                  <span className="text-xs font-medium text-rose-800">
+                    <span className="mr-1 font-bold">{m.user}</span>
                     left the room
                   </span>
                 </div>
@@ -199,12 +207,12 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
                 minute: "2-digit",
               });
               return (
-                <div key={`msg-${idx}`} className="flex justify-end mb-4">
-                  <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tr-sm bg-blue-600 text-white shadow-md">
+                <div key={`msg-${idx}`} className="flex justify-end">
+                  <div className="w-fit max-w-[88%] rounded-[20px] rounded-br-md bg-[linear-gradient(135deg,#2563eb_0%,#1d4ed8_100%)] px-3.5 py-3 text-white shadow-[0_12px_30px_rgba(37,99,235,0.22)] sm:max-w-[min(70%,420px)] sm:px-4">
                     <p className="text-sm leading-relaxed break-words">
                       {msg.text}
                     </p>
-                    <div className="text-[10px] text-blue-100 opacity-70 text-right mt-1">
+                    <div className="mt-2 text-right text-[10px] text-blue-100/80">
                       {msgTime}
                     </div>
                   </div>
@@ -218,12 +226,15 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
                 minute: "2-digit",
               });
               return (
-                <div key={`msg-${idx}`} className="flex justify-start mb-4">
-                  <div className="max-w-[75%] px-4 py-2 rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800 shadow-sm">
+                <div key={`msg-${idx}`} className="flex justify-start">
+                  <div className="w-fit max-w-[88%] rounded-[20px] rounded-bl-md border border-slate-200 bg-white px-3.5 py-3 text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:max-w-[min(70%,420px)] sm:px-4">
+                    <p className="mb-1 text-xs font-semibold text-slate-500">
+                      {msg.user}
+                    </p>
                     <p className="text-sm leading-relaxed break-words">
                       {msg.text}
                     </p>
-                    <div className="text-[10px] text-gray-600 opacity-70 text-right mt-1">
+                    <div className="mt-2 text-right text-[10px] text-slate-500">
                       {msgTime}
                     </div>
                   </div>
@@ -233,9 +244,38 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
           }
           return null;
         })}
+          {messages.length === 0 && (
+            <div className="flex flex-1 items-center justify-center py-12 sm:py-16">
+              <div className="max-w-sm rounded-3xl border border-slate-200 bg-white/80 px-6 py-8 text-center shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:px-8 sm:py-10">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-6 w-6"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                  Start the conversation
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Messages, join updates, and room activity will appear here.
+                </p>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
-      <div className="flex-shrink-0 border-t bg-white p-4 bottom-0">
-        <div className="flex gap-2 items-center">
+
+      <div className="border-t border-slate-200/80 bg-white/90 px-3 py-3 backdrop-blur sm:px-6 sm:py-4">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 rounded-[24px] border border-slate-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.08)] sm:flex-row sm:items-end sm:rounded-[28px]">
           <input
             type="text"
             ref={inputref}
@@ -250,22 +290,20 @@ const ChatArea = ({ setparticipants }: ChatAreaProps) => {
             placeholder="Type a message..."
             aria-label="Message"
             autoComplete="off"
-            className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            className="min-h-[50px] w-full flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100 sm:min-h-[52px]"
           />
           <button
             onClick={sendMessage}
             type="button"
             disabled={!Newtext.trim()}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 active:scale-95 flex items-center gap-2
+            className={`flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl px-5 font-semibold transition-all duration-300 active:scale-95 sm:h-[52px] sm:w-auto
              ${
                Newtext.trim()
-                 ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                 : "bg-blue-200 text-white/60 cursor-not-allowed"
+                 ? "cursor-pointer bg-blue-600 text-white shadow-[0_12px_28px_rgba(37,99,235,0.24)] hover:bg-blue-700"
+                 : "cursor-not-allowed bg-slate-200 text-slate-400"
              }`}
           >
-            <span className={`${Newtext.trim() ? "" : "opacity-70"}`}>
-              Send
-            </span>
+            <span>Send</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
