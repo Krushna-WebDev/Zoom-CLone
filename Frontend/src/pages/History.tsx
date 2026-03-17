@@ -44,11 +44,11 @@ const History = () => {
     fetchHistory();
   }, [isLoading, token]);
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-raleway mt-20">
+    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8 font-raleway mt-20">
       {/* Header Section */}
       <div className="mx-auto max-w-7xl mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meeting History</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Meeting History</h1>
           <p className="mt-2 text-sm text-gray-600">
             Overview of your past sessions and participant details.
           </p>
@@ -75,7 +75,7 @@ const History = () => {
               className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md hover:ring-orange-200"
             >
               {/* Card Header (Date & Status) */}
-              <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/50 px-5 py-4 sm:px-6">
                 <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
                   <svg
                     className="h-4 w-4"
@@ -95,7 +95,7 @@ const History = () => {
               </div>
 
               {/* Card Body */}
-              <div className="flex-1 px-6 py-6">
+              <div className="flex-1 px-5 py-6 sm:px-6">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
                     {/* todo:-tittle set krna hai  */}
@@ -186,7 +186,7 @@ const History = () => {
         })}
       </div>
       {HistoryModel && selectedMeeting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -199,7 +199,7 @@ const History = () => {
           {/* Modal Card */}
           <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-gray-900/5 animate-in fade-in zoom-in-95 duration-200">
             {/* Header Section */}
-            <div className="bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="bg-white px-4 py-4 border-b border-gray-100 flex items-center justify-between gap-3 sm:px-6">
               <div className="flex flex-col">
                 <h1 className="text-lg font-bold text-gray-900">
                   Meeting Details
@@ -239,9 +239,9 @@ const History = () => {
             </div>
 
             {/* Content Area */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* Top Grid: Host & Date */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {/* Host Card */}
                 <div className="rounded-xl border border-orange-100 bg-orange-50/50 p-4">
                   <div className="mb-2 flex items-center gap-2 text-orange-600">
@@ -268,7 +268,7 @@ const History = () => {
                 </div>
 
                 {/* Date Card */}
-                <div className="flex flex-wrap items-center gap-3 mb-6">
+                <div className="mb-2 flex flex-wrap items-center gap-3 sm:mb-0">
                   {/* Date Badge */}
                   <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 border border-blue-100">
                     <svg
@@ -362,7 +362,7 @@ const History = () => {
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
               <button
                 onClick={() => {
                   setHistoryModel(false);

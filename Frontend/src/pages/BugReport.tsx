@@ -52,13 +52,13 @@ const BugReport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-16 font-raleway p-6">
-      <div className="mx-auto max-w-3xl bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+    <div className="min-h-screen bg-gray-50 mt-16 p-4 font-raleway sm:p-6">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-8">
         <div className="text-center mb-8">
           <span className="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
             Report
           </span>
-          <h1 className="text-3xl font-extrabold text-gray-900 mt-4 mb-2">
+          <h1 className="mt-4 mb-2 text-2xl font-extrabold text-gray-900 sm:text-3xl">
             Bug Report
           </h1>
           <p className="text-gray-500">

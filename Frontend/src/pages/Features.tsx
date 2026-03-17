@@ -3,7 +3,7 @@ import React from "react";
 const Features = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-orange-50 to-white mt-16 font-raleway">
-      <section className="mx-auto max-w-6xl px-6 py-14">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
         <div className="text-center">
           <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-bold uppercase tracking-wider">
             Features
@@ -11,7 +11,7 @@ const Features = () => {
           <h1 className="mt-4 text-4xl sm:text-5xl font-extrabold text-gray-900">
             Everything you need for smooth meetings
           </h1>
-          <p className="mt-4 text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="mx-auto mt-4 max-w-2xl text-base text-gray-600 sm:text-lg">
             Chattique brings fast joins, stable calls, and collaboration tools
             that keep teams aligned.
           </p>
@@ -68,8 +68,8 @@ const Features = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="rounded-3xl bg-white border border-gray-100 p-8 shadow-sm">
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+        <div className="rounded-3xl bg-white border border-gray-100 p-6 shadow-sm sm:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <h3 className="text-2xl font-extrabold text-gray-900">
@@ -79,7 +79,7 @@ const Features = () => {
                 No clutter, no delays. Just meetings that work.
               </p>
             </div>
-            <button className="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-orange-700">
+            <button className="w-full rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-orange-700 sm:w-auto">
               Start a Meeting
             </button>
           </div>

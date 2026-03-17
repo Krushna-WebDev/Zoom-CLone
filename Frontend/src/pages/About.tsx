@@ -3,7 +3,7 @@ import React from "react";
 const About = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-white mt-16 font-raleway">
-      <section className="mx-auto max-w-6xl px-6 py-14">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div>
             <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-bold uppercase tracking-wider">
@@ -67,7 +67,7 @@ const About = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-14">
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-14">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="rounded-3xl bg-white border border-gray-100 p-6 shadow-sm">
             <h4 className="text-lg font-bold text-gray-900 mb-2">Mission</h4>
@@ -91,8 +91,8 @@ const About = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="rounded-3xl bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-white shadow-xl">
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+        <div className="rounded-3xl bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white shadow-xl sm:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <h3 className="text-2xl font-extrabold">Built for your flow</h3>
@@ -101,7 +101,7 @@ const About = () => {
                 moving.
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-orange-600 shadow-sm hover:shadow">
                 Get Started
               </button>

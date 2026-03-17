@@ -101,14 +101,14 @@ export const Setting = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-16 font-raleway p-6">
+    <div className="min-h-screen bg-gray-50 mt-16 p-4 font-raleway sm:p-6">
       <div className="mx-auto max-w-5xl">
         {/* Page Header */}
         <div className="mb-10 text-center">
           <span className="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
             Settings
           </span>
-          <h1 className="text-4xl font-extrabold text-gray-900 mt-4 mb-2">
+          <h1 className="mt-4 mb-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
             Your Profile
           </h1>
           <p className="text-gray-500">
@@ -157,10 +157,10 @@ export const Setting = () => {
           </div>
 
           {/* ---------------- Card 2: Personal Details & Actions ---------------- */}
-          <div className="md:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div className="md:col-span-2 bg-white rounded-3xl p-5 sm:p-8 shadow-sm border border-gray-100 flex flex-col justify-between">
             {/* Top Section: Header & Fields */}
             <div>
-              <div className="flex justify-between items-center mb-8">
+              <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-bold text-gray-900">
                   Personal Details
                 </h3>
@@ -190,9 +190,9 @@ export const Setting = () => {
                   <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
                     Email Address
                   </label>
-                  <div className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <svg
-                      className="w-5 h-5 text-gray-400 mr-3"
+                      className="mr-1 h-5 w-5 text-gray-400 sm:mr-3"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -207,7 +207,7 @@ export const Setting = () => {
                     <span className="flex-1 text-gray-600 font-medium truncate">
                       {user?.email}
                     </span>
-                    <span className="ml-2 text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold uppercase tracking-wide">
+                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold uppercase tracking-wide">
                       Verified
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export const Setting = () => {
             </div>
 
             {/* Bottom Section: Action Buttons */}
-            <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+            <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4">
               <button className="w-full sm:w-auto text-red-600 hover:text-red-700 text-sm font-bold px-4 py-2 rounded-xl transition-colors hover:bg-red-50">
                 Logout
               </button>
@@ -237,36 +237,6 @@ export const Setting = () => {
                 Save Changes
               </button>
             </div>
-          </div>
-
-          {/* ---------------- Card 3: Danger Zone ---------------- */}
-          <div className="md:col-span-3 bg-gradient-to-r from-red-50 to-white rounded-3xl p-6 border border-red-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-red-100 p-3 rounded-full text-red-600">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-red-900 font-bold">Danger Zone</h4>
-                <p className="text-red-700/70 text-sm">
-                  Once you delete your account, there is no going back.
-                </p>
-              </div>
-            </div>
-            <button className="whitespace-nowrap px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors shadow-sm">
-              Delete Account
-            </button>
           </div>
         </div>
         {passwordModel && (
@@ -328,7 +298,7 @@ export const Setting = () => {
             ) : (
               <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-gray-100 bg-gray-50/50 sm:px-6">
                   <div>
                     <h1 className="text-lg font-bold text-gray-900">
                       Change Password
@@ -359,7 +329,7 @@ export const Setting = () => {
                   </button>
                 </div>
 
-                <div className="p-6 space-y-5 ">
+                <div className="space-y-5 p-4 sm:p-6">
                   {/* Current Password */}
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
@@ -469,7 +439,7 @@ export const Setting = () => {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                   <button
                     onClick={() => {
                       setPasswordModel(false);

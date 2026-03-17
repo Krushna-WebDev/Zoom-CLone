@@ -1,4 +1,4 @@
-﻿import React, { useContext, useState } from "react";
+﻿import React, { useContext, useEffect, useState } from "react";
 import Hero from "../components/Hero";
 import { Link } from "react-router-dom";
 import { FaGoogle } from "react-icons/fa";
@@ -19,6 +19,7 @@ interface formdatainterface {
 }
 
 const Home = () => {
+  const FIRST_VISIT_KEY = "seen_welcome_msg";
   //context
   const { loginModel, setLoginModel } = useContext(ModalContext)!;
   const { RequireLoginModal, setRequireLoginModal } = useContext(ModalContext)!;
@@ -33,6 +34,8 @@ const Home = () => {
   const [emailVerifyModel, setEmailVerifyModel] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [forgotPassOpen, setForgotPassOpen] = useState(false);
+  const [warningModel, setWarningModel] = useState(false);
+
   // function
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setformdata({
@@ -113,6 +116,19 @@ const Home = () => {
       toast.error(error.response.data.message);
     }
   };
+
+  useEffect(() => {
+    const alreadySeen = localStorage.getItem(FIRST_VISIT_KEY);
+    if (!alreadySeen) {
+      setWarningModel(true);
+    }
+  }, []);
+
+  const closeWarningModal = () => {
+    localStorage.setItem(FIRST_VISIT_KEY, "true");
+    setWarningModel(false);
+  };
+
   return (
     <>
       <Hero />
@@ -545,6 +561,83 @@ const Home = () => {
         mode="loggedOut"
         email={emailInput}
       />
+
+      {warningModel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+          {/* Backdrop Click to Close */}
+          <div
+            className="absolute inset-0"
+            onClick={closeWarningModal}
+          ></div>
+
+          {/* Modal Card */}
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 text-center animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
+            {/* Decorative Icon */}
+            <div className="mx-auto w-16 h-16 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-6 border border-orange-100 shadow-sm">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 font-raleway">
+              Welcome to Chattique! 👋
+            </h2>
+
+            {/* Improved Copy mentioning Bugs */}
+            <p className="text-gray-600 text-sm leading-relaxed mb-8 px-2">
+              This application is a personal practice project built to explore{" "}
+              <strong className="text-gray-900">real-time communication</strong>
+              .
+              <br />
+              <br />
+              Rooms are currently limited to{" "}
+              <strong className="text-orange-600">3 participants</strong>. Since
+              this is a learning project, you might spot a few glitches. Your
+              feedback helps me improve!
+            </p>
+
+            {/* Stacked Action Buttons */}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={closeWarningModal}
+                className="w-full py-3.5 px-4 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.98]"
+              >
+                Got it, let's go!
+              </button>
+
+              <button
+                onClick={() => {}}
+                className="group w-full py-2.5 px-4 bg-transparent hover:bg-red-50 text-gray-500 hover:text-red-600 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                Report a Bug
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

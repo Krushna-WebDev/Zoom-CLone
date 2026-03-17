@@ -46,12 +46,12 @@ export const login = async (req, res) => {
 
   const FoundUser = await User.findOne({ email: email });
   if (!FoundUser) {
-    return res.json({ message: "Provide Valid Email" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
   const Match = await bcrypt.compare(password, FoundUser.password);
   if (!Match) {
-    return res.status(401).json({ message: "enter correct password" });
+    return res.status(401).json({ message: "Invalid email or password" });
   }
   const accessToken = jwt.sign(
     { id: FoundUser._id },
@@ -76,10 +76,12 @@ export const login = async (req, res) => {
 export const refresh = (req, res) => {
   const cookie = req.cookies.jwt;
 
-  if (!cookie) return res.json({ message: "unauthorized" });
+  if (!cookie) return res.status(401).json({ message: "Unauthorized" });
 
   jwt.verify(cookie, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
 
     const accessToken = jwt.sign(
       { id: user.id },

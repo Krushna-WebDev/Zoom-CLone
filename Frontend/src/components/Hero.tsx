@@ -5,7 +5,6 @@ import { UserContext } from "../../Context/Context";
 import { ModalContext } from "../../Context/ModelContext";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import TestModel from "./TestModel";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -59,7 +58,6 @@ const Hero = () => {
             },
           );
           const newToken = refreshRes.data.accessToken;
-          localStorage.setItem("token", newToken);
           setToken(newToken);
         } catch (refreshError) {
           console.error("Refresh failed:", refreshError);
@@ -139,12 +137,6 @@ const Hero = () => {
                 className="rounded-xl border border-orange-200 bg-white/80 px-5 py-3 text-orange-600 font-raleway font-semibold shadow-sm transition hover:bg-orange-50"
               >
                 Start Video Call
-              </button>
-              <button
-                onClick={() => setTestModel(true)}
-                className="rounded-xl border border-gray-200 bg-white/70 px-5 py-3 text-gray-700 font-medium shadow-sm transition hover:bg-white"
-              >
-                TestModel
               </button>
             </div>
           </div>
@@ -348,7 +340,6 @@ const Hero = () => {
           </div>
         )}
       </div>
-      <TestModel isOpen={testModel} IsClose={() => setTestModel(false)} />
     </>
   );
 };
