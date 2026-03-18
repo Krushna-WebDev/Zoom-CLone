@@ -6,6 +6,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import userRoute from "./Routes/user.routes.js";
 import meetingRoute from "./Routes/meeting.routes.js";
+import bugReportRoute from "./Routes/bugReport.routes.js";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import DOMPurify from "isomorphic-dompurify";
@@ -250,5 +251,6 @@ io.on("connection", async (socket) => {
 
 app.use("/api/v1/auth", userRoute);
 app.use("/api/v1/meeting", meetingRoute);
+app.use("/api/v1/bug-report",bugReportRoute)
 mongoose.connect(process.env.MONGODB_URI);
 server.listen(process.env.PORT || 5000);

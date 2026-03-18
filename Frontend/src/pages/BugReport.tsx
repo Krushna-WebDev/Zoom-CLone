@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -6,49 +7,33 @@ const BugReport = () => {
   const [steps, setSteps] = useState("");
   const [expected, setExpected] = useState("");
   const [actual, setActual] = useState("");
-  const [severity, setSeverity] = useState("medium");
   const [email, setEmail] = useState("");
-  const [meetingId, setMeetingId] = useState("");
   const [browser, setBrowser] = useState("");
   const [device, setDevice] = useState("desktop");
-  const [logs, setLogs] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
   const userAgent = useMemo(() => navigator.userAgent, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !steps.trim() || !actual.trim()) {
       toast.error("Please fill required fields.");
       return;
     }
-    // Placeholder submit; wire to backend later
-    console.log({
-      title,
-      steps,
-      expected,
-      actual,
-      severity,
-      email,
-      meetingId,
-      browser,
-      device,
-      logs,
-      screenshot,
-      userAgent,
-    });
-    toast.success("Bug report submitted!");
-    setTitle("");
-    setSteps("");
-    setExpected("");
-    setActual("");
-    setSeverity("medium");
-    setEmail("");
-    setMeetingId("");
-    setBrowser("");
-    setDevice("desktop");
-    setLogs("");
-    setScreenshot(null);
+    const res = await axios.post(
+      "http://localhost:5000/api/v1/bug-report/create",
+      {
+        title,
+        steps,
+        expected,
+        actual,
+        email,
+        browser,
+        device,
+      },
+    );
+    console.log(res.data);
+   
   };
 
   return (
@@ -116,22 +101,7 @@ const BugReport = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-                Severity
-              </label>
-              <select
-                value={severity}
-                onChange={(e) => setSeverity(e.target.value)}
-                className="w-full p-3 rounded-xl border border-gray-200 bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="blocking">Blocking</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
                 Device
@@ -159,41 +129,16 @@ const BugReport = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-                Your Email
-              </label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
-                placeholder="you@email.com"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-                Meeting ID (if any)
-              </label>
-              <input
-                value={meetingId}
-                onChange={(e) => setMeetingId(e.target.value)}
-                className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
-                placeholder="Room code or meeting id"
-              />
-            </div>
-          </div>
-
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-              Console Logs (optional)
+              Your Email
             </label>
-            <textarea
-              value={logs}
-              onChange={(e) => setLogs(e.target.value)}
-              className="w-full p-3 h-28 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
-              placeholder="Paste any error logs here"
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
+              placeholder="you@email.com"
             />
           </div>
 
