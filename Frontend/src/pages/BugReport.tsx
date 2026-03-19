@@ -16,24 +16,39 @@ const BugReport = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !steps.trim() || !actual.trim()) {
-      toast.error("Please fill required fields.");
+    // if (!title.trim() || !steps.trim() || !actual.trim()) {
+    //   toast.error("Please fill required fields.");
+    //   return;
+    // }
+    const file = screenshot;
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("steps", steps);
+    formData.append("expected", expected);
+    formData.append("actual", actual);
+    formData.append("email", email);
+    formData.append("browser", browser);
+    formData.append("device", device);
+    if (!file) {
+      alert("Please upload file");
       return;
     }
-    const res = await axios.post(
-      "http://localhost:5000/api/v1/bug-report/create",
-      {
-        title,
-        steps,
-        expected,
-        actual,
-        email,
-        browser,
-        device,
-      },
-    );
-    console.log(res.data);
-   
+    formData.append("screenshot", file);
+    console.log([...formData.entries()]);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/bug-report/create",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
