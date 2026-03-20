@@ -34,7 +34,6 @@ const BugReport = () => {
       return;
     }
     formData.append("screenshot", file);
-    console.log([...formData.entries()]);
     try {
       const res = await axios.post(
         "http://localhost:5000/api/v1/bug-report/create",
@@ -66,7 +65,10 @@ const BugReport = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
               Title *
