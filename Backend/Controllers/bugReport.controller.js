@@ -4,7 +4,7 @@ dotenv.config();
 
 export const createBugReport = async (req, res) => {
   const { title, steps, expected, actual, email, browser, device } = req.body;
-
+  console.log("got data", req.body);
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -13,7 +13,7 @@ export const createBugReport = async (req, res) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
-    const info = await transporter.sendMail({
+    const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
       replyTo: email,
@@ -100,14 +100,17 @@ export const createBugReport = async (req, res) => {
           </div>
         </div>
       `.trim(),
+    };
 
-      attachments: [
+    if (req.file) {
+      mailOptions.attachments = [
         {
           filename: req.file.originalname,
           path: req.file.path,
         },
-      ],
-    });
+      ];
+    }
+    const info = await transporter.sendMail(mailOptions);
 
     if (info.accepted?.length > 0) {
       return res.status(200).json({

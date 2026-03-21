@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 
 const BugReport = () => {
@@ -8,32 +8,37 @@ const BugReport = () => {
   const [expected, setExpected] = useState("");
   const [actual, setActual] = useState("");
   const [email, setEmail] = useState("");
-  const [browser, setBrowser] = useState("");
+  const [browser, setBrowser] = useState("Chrome");
+  const [otherBrowser, setOtherBrowser] = useState("");
   const [device, setDevice] = useState("desktop");
   const [screenshot, setScreenshot] = useState<File | null>(null);
-
-  const userAgent = useMemo(() => navigator.userAgent, []);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // if (!title.trim() || !steps.trim() || !actual.trim()) {
-    //   toast.error("Please fill required fields.");
-    //   return;
-    // }
-    const file = screenshot;
+    setLoading(true);
+    if (!title.trim() || !steps.trim()) {
+      toast.error("Please fill required fields.");
+      setLoading(false);
+      return;
+    }
+    if (browser === "Other" && !otherBrowser.trim()) {
+      toast.error("Please enter your browser name.");
+      setLoading(false);
+      return;
+    }
     const formData = new FormData();
+    const browserValue = browser === "Other" ? otherBrowser.trim() : browser;
     formData.append("title", title);
     formData.append("steps", steps);
     formData.append("expected", expected);
     formData.append("actual", actual);
     formData.append("email", email);
-    formData.append("browser", browser);
+    formData.append("browser", browserValue);
     formData.append("device", device);
-    if (!file) {
-      alert("Please upload file");
-      return;
+    if (screenshot) {
+      formData.append("screenshot", screenshot);
     }
-    formData.append("screenshot", file);
     try {
       const res = await axios.post(
         "http://localhost:5000/api/v1/bug-report/create",
@@ -44,9 +49,22 @@ const BugReport = () => {
           },
         },
       );
-      console.log(res.data);
-    } catch (error) {
-      console.log(error);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setTitle("");
+        setSteps("");
+        setExpected("");
+        setActual("");
+        setEmail("");
+        setBrowser("Chrome");
+        setOtherBrowser("");
+        setDevice("desktop");
+        setScreenshot(null);
+      }
+    } catch (error: any) {
+      toast.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,16 +83,14 @@ const BugReport = () => {
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
               Title *
             </label>
             <input
               value={title}
+              disabled={loading}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
               placeholder="Short summary of the issue"
@@ -87,6 +103,7 @@ const BugReport = () => {
             </label>
             <textarea
               value={steps}
+              disabled={loading}
               onChange={(e) => setSteps(e.target.value)}
               className="w-full p-3 h-28 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
               placeholder="1. Go to...\n2. Click...\n3. Observe..."
@@ -96,10 +113,11 @@ const BugReport = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-                Expected
+                Expected (optional)
               </label>
               <textarea
                 value={expected}
+                disabled={loading}
                 onChange={(e) => setExpected(e.target.value)}
                 className="w-full p-3 h-24 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
                 placeholder="What you expected to happen"
@@ -107,10 +125,11 @@ const BugReport = () => {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
-                Actual *
+                Actual (optional)
               </label>
               <textarea
                 value={actual}
+                disabled={loading}
                 onChange={(e) => setActual(e.target.value)}
                 className="w-full p-3 h-24 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
                 placeholder="What actually happened"
@@ -125,6 +144,7 @@ const BugReport = () => {
               </label>
               <select
                 value={device}
+                disabled={loading}
                 onChange={(e) => setDevice(e.target.value)}
                 className="w-full p-3 rounded-xl border border-gray-200 bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
               >
@@ -137,14 +157,39 @@ const BugReport = () => {
               <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
                 Browser
               </label>
-              <input
+              <select
                 value={browser}
-                onChange={(e) => setBrowser(e.target.value)}
-                className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
-                placeholder="Chrome / Edge / Safari"
-              />
+                disabled={loading}
+                onChange={(e) => {
+                  setBrowser(e.target.value);
+                  if (e.target.value !== "Other") {
+                    setOtherBrowser("");
+                  }
+                }}
+                className="w-full p-3 rounded-xl border border-gray-200 bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
+              >
+                <option value="Chrome">Chrome</option>
+                <option value="Edge">Edge</option>
+                <option value="Safari">Safari</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
           </div>
+
+          {browser === "Other" && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
+                Other Browser
+              </label>
+              <input
+                value={otherBrowser}
+                disabled={loading}
+                onChange={(e) => setOtherBrowser(e.target.value)}
+                className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
+                placeholder="Enter browser name"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase mb-2">
@@ -152,6 +197,7 @@ const BugReport = () => {
             </label>
             <input
               value={email}
+              disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               className="w-full p-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none"
@@ -173,9 +219,14 @@ const BugReport = () => {
 
           <button
             type="submit"
-            className="w-full bg-gray-900 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition"
+            disabled={loading}
+            className={`w-full text-white font-bold py-3 rounded-xl transition ${
+              loading
+                ? "bg-gray-500 cursor-not-allowed opacity-70"
+                : "bg-gray-900 hover:bg-orange-600"
+            }`}
           >
-            Submit Bug Report
+            {loading ? "Submitting bug report..." : "Submit"}
           </button>
         </form>
       </div>
