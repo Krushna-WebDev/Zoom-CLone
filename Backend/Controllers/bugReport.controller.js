@@ -1,11 +1,41 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import cloudinary from "../config/cloundnary.js";
 dotenv.config();
 
 export const createBugReport = async (req, res) => {
   const { title, steps, expected, actual, email, browser, device } = req.body;
-  console.log("got data", req.body);
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ message: "No files uploaded" });
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+  if (!allowedTypes.includes(file.mimetype)) {
+    return res.status(400).json({ message: "Invalid file type" });
+  }
+
   try {
+    const fileAsDataUri = `data:${file.mimetype};base64,${file.buffer.toString(
+      "base64"
+    )}`;
+
+    const uploadResult = await cloudinary.uploader.upload(fileAsDataUri, {
+      folder: "bug-reports",
+      resource_type: "image",
+    });
+
+    if (!uploadResult?.secure_url) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload screenshot",
+      });
+    }
+
+    const screenshotUrl = uploadResult.secure_url;
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -13,12 +43,29 @@ export const createBugReport = async (req, res) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
+
+    const plainTextScreenshotSection = `
+        Screenshot URL:
+        ${screenshotUrl}
+      `.trim();
+
+    const htmlScreenshotSection = `
+      <div style="margin-top: 25px;">
+        <h3 style="color: #475569; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Screenshot</h3>
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+          <p style="margin: 0 0 12px 0; font-size: 14px; color: #334155;">
+            <a href="${screenshotUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none;">Open uploaded screenshot</a>
+          </p>
+          <img src="${screenshotUrl}" alt="Bug report screenshot" style="max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0;" />
+        </div>
+      </div>
+    `.trim();
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
       replyTo: email,
       subject: `New Bug Report: ${title}`,
-      // plain text if html is disable
       text: `
         Bug Report Details
         ==================
@@ -35,9 +82,10 @@ export const createBugReport = async (req, res) => {
   
         Actual:
         ${actual || "Not provided"}
+  
+        ${plainTextScreenshotSection}
           `.trim(),
 
-      // 2. Beautiful HTML format
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; padding: 30px 15px; color: #1f2937;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
@@ -91,6 +139,7 @@ export const createBugReport = async (req, res) => {
                 </div>
               </div>
   
+              ${htmlScreenshotSection}
             </div>
   
             <div style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px; text-align: center;">
@@ -102,20 +151,13 @@ export const createBugReport = async (req, res) => {
       `.trim(),
     };
 
-    if (req.file) {
-      mailOptions.attachments = [
-        {
-          filename: req.file.originalname,
-          path: req.file.path,
-        },
-      ];
-    }
     const info = await transporter.sendMail(mailOptions);
 
     if (info.accepted?.length > 0) {
       return res.status(200).json({
         success: true,
         message: "Bug report submitted successfully",
+        screenshotUrl,
       });
     }
 
@@ -125,10 +167,15 @@ export const createBugReport = async (req, res) => {
         message: "Failed to submit bug report",
       });
     }
+
+    return res.status(500).json({
+      success: false,
+      message: "Bug report email status could not be confirmed",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Something went wrong while sending bug report",
+      message: "Something went wrong while submitting bug report",
     });
   }
 };
