@@ -1,8 +1,10 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { UserContext } from "../../Context/Context";
 
 const BugReport = () => {
+  const { user } = useContext(UserContext)!;
   const [title, setTitle] = useState("");
   const [steps, setSteps] = useState("");
   const [expected, setExpected] = useState("");
@@ -14,6 +16,11 @@ const BugReport = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect (() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
